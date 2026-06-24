@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>标签舱单</title>
+<link rel="stylesheet" href="newtab.css">
+</head>
+<body>
+
+  <!-- 顶部栏 -->
+  <header id="topbar">
+    <div class="wordmark">
+      TAB · MANIFEST
+      <span class="totals" id="totals">— 窗口 · — 标签</span>
+    </div>
+    <div class="controls">
+      <input id="filterInput" type="text" placeholder="筛选标题或网址…" autocomplete="off" spellcheck="false">
+      <button id="refreshBtn" aria-label="刷新列表" title="刷新列表">⟳</button>
+    </div>
+  </header>
+
+  <!-- 书签栏（自建） -->
+  <nav id="bookmarksBar" aria-label="书签栏"></nav>
+
+  <!-- 两栏主体 -->
+  <div id="layout">
+
+    <!-- 左：标签舱单 -->
+    <section id="tabPanel">
+      <main id="content"></main>
+      <p id="emptyState" hidden>没有匹配的标签页</p>
+    </section>
+
+    <!-- 右：书签组 -->
+    <section id="groupPanel">
+      <div id="groupPanelHead">
+        <span class="panel-title">BOOKMARK · GROUPS</span>
+        <button id="configBtn" title="设置工作区文件夹">⚙</button>
+      </div>
+
+      <!-- 工作区配置（默认隐藏） -->
+      <div id="configArea" hidden>
+        <label for="workspaceSelect" class="config-label">工作区文件夹</label>
+        <select id="workspaceSelect"></select>
+        <div class="config-row">
+          <button id="saveConfigBtn" class="btn-primary-sm">保存</button>
+          <button id="cancelConfigBtn" class="btn-ghost-sm">取消</button>
+        </div>
+        <p class="config-hint">
+          选择一个书签文件夹作为工作区。<br>
+          工作区内的每个子文件夹都会显示为一个"书签组"，可以一键在新窗口全部打开。
+        </p>
+      </div>
+
+      <!-- 书签组列表 -->
+      <div id="groupList"></div>
+
+      <!-- 未设置工作区时的提示 -->
+      <div id="groupEmpty" hidden>
+        <p>还没有设置工作区文件夹。</p>
+        <button id="goConfigBtn" class="btn-primary-sm">立即设置</button>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- 模板：标签行 -->
+  <template id="winTemplate">
+    <article class="win">
+      <header class="win-head">
+        <span class="callsign"></span>
+        <span class="win-meta"></span>
+      </header>
+      <ul class="tab-list"></ul>
+    </article>
+  </template>
+
+  <template id="rowTemplate">
+    <li class="tab-row">
+      <span class="seq"></span>
+      <span class="favicon"></span>
+      <span class="title"></span>
+      <span class="host"></span>
+      <span class="active-dot" hidden></span>
+    </li>
+  </template>
+
+  <!-- 模板：书签组卡片 -->
+  <template id="groupTemplate">
+    <article class="group-card">
+      <header class="group-head">
+        <span class="group-name"></span>
+        <div class="group-actions">
+          <button class="mode-toggle" title="点击切换固定/取出后删除模式"></button>
+          <button class="open-btn">打开</button>
+        </div>
+      </header>
+      <ul class="group-urls"></ul>
+    </article>
+  </template>
+
+  <script src="newtab.js"></script>
+</body>
+</html>

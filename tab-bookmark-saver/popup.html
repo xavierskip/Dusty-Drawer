@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>标签书签收纳箱</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h1>标签书签收纳箱</h1>
+
+  <section class="card">
+    <h2>① 存入书签</h2>
+
+    <div class="row">
+      <label class="radio">
+        <input type="radio" name="scope" value="current" checked>
+        当前窗口的标签页
+      </label>
+      <label class="radio">
+        <input type="radio" name="scope" value="all">
+        所有窗口的标签页
+      </label>
+    </div>
+
+    <div class="row">
+      <label for="folderSelect">目标文件夹</label>
+      <select id="folderSelect"></select>
+    </div>
+
+    <div class="row">
+      <label for="newFolderName">新建子文件夹（留空则直接存入上面选的文件夹）</label>
+      <input type="text" id="newFolderName" placeholder="例如：稍后阅读 2026-06-17">
+    </div>
+
+    <div class="row checkbox-row">
+      <label class="checkbox">
+        <input type="checkbox" id="skipDup" checked>
+        跳过本文件夹内已存在的相同链接
+      </label>
+      <label class="checkbox">
+        <input type="checkbox" id="closeAfter">
+        保存后关闭这些标签页
+      </label>
+    </div>
+
+    <button id="saveBtn" class="primary">保存标签页</button>
+    <div id="saveStatus" class="status"></div>
+  </section>
+
+  <section class="card">
+    <h2>② 取出书签</h2>
+
+    <div class="row">
+      <label for="openFolderSelect">选择文件夹</label>
+      <select id="openFolderSelect"></select>
+    </div>
+
+    <div class="row checkbox-row">
+      <label class="checkbox">
+        <input type="checkbox" id="removeAfter">
+        打开后删除这个文件夹（一次性取出）
+      </label>
+    </div>
+
+    <button id="openBtn" class="primary">在新窗口打开全部链接</button>
+    <div id="openStatus" class="status"></div>
+  </section>
+
+  <script src="popup.js"></script>
+</body>
+</html>

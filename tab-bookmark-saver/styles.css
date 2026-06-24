@@ -1,0 +1,95 @@
+* { box-sizing: border-box; }
+
+body {
+  width: 360px;
+  margin: 0;
+  padding: 14px;
+  font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 13px;
+  color: #1f2328;
+  background: #f6f7f9;
+}
+
+h1 {
+  font-size: 15px;
+  margin: 0 0 10px;
+}
+
+h2 {
+  font-size: 13px;
+  margin: 0 0 10px;
+  color: #444;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #e3e5e8;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.row {
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.row label:not(.radio):not(.checkbox) {
+  font-size: 12px;
+  color: #555;
+}
+
+select, input[type="text"] {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #d0d3d8;
+  border-radius: 6px;
+  font-size: 13px;
+  background: #fff;
+}
+
+.radio, .checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.checkbox-row {
+  flex-direction: column;
+  gap: 6px;
+}
+
+button.primary {
+  width: 100%;
+  padding: 8px 0;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+button.primary:hover {
+  background: #1d4ed8;
+}
+
+button.primary:disabled {
+  background: #a9bce6;
+  cursor: default;
+}
+
+.status {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #2563eb;
+  min-height: 14px;
+}
+
+.status.error {
+  color: #d33;
+}

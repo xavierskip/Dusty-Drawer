@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>新标签页</title>
+  <link rel="stylesheet" href="newtab.css">
+</head>
+<body>
+  <!-- 书签栏 -->
+  <div id="bookmarkBar" class="bookmark-bar">
+    <div class="bookmark-bar-content" id="bookmarkBarContent">
+      <!-- 动态填充 -->
+    </div>
+    <div class="bookmark-bar-actions">
+      <button id="openSettings" class="bookmark-bar-btn" title="设置">
+        <span>⚙️</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="main-container">
+    <!-- 内容区域 -->
+    <div class="content">
+      <!-- 打开的标签页 -->
+      <section class="section">
+        <div class="section-header">
+          <h2>
+            <span class="section-icon">🗔</span>
+            打开的标签页
+            <span class="badge" id="windowsBadge">0</span>
+          </h2>
+        </div>
+        <div id="windowsContainer" class="windows-container">
+          <!-- 动态填充 -->
+        </div>
+      </section>
+
+      <!-- 工作区书签 -->
+      <section class="section">
+        <div class="section-header">
+          <h2>
+            <span class="section-icon">📁</span>
+            工作区书签
+            <span class="badge" id="bookmarksBadge">0</span>
+          </h2>
+        </div>
+        <div id="bookmarksContainer" class="bookmarks-container">
+          <!-- 动态填充 -->
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="newtab.js"></script>
+</body>
+</html>

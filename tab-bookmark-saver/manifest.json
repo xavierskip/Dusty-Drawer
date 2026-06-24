@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "标签书签收纳箱",
+  "version": "1.1.0",
+  "description": "新标签页：总览所有窗口标签页 + 书签组一键批量打开",
+  "permissions": ["tabs", "bookmarks", "favicon", "storage"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "标签书签收纳箱"
+  },
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
+  }
+}
