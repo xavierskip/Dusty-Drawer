@@ -123,14 +123,16 @@ function createBookmarkBarItem(bookmark) {
     return folder;
   } else {
     // 书签
-    const link = document.createElement('a');
+    const link = document.createElement('a'); 
     link.className = 'bookmark-item';
     link.href = bookmark.url;
     link.title = bookmark.title;
-    link.innerHTML = `
-      <img class="favicon" src="https://www.google.com/s2/favicons?domain=${extractDomain(bookmark.url)}&sz=64" alt="">
-      <span class="title">${escapeHtml(bookmark.title)}</span>
-    `;
+    const titleEle = document.createElement('span');
+    titleEle.className = 'title';
+    titleEle.textContent = bookmark.title;
+    const favicon = getFaviconEle('favicon', bookmark.url, bookmark.title);
+    link.appendChild(favicon);
+    link.appendChild(titleEle);
     link.addEventListener('click', (e) => {
       e.preventDefault();
       window.location.href = bookmark.url;
@@ -181,7 +183,7 @@ function renderWindows(windows) {
 
     const isCurrentWindow = window.focused;
     // 截取窗口标题，避免太长
-    const windowTitle = window.title.length > 40 ? window.title.substring(0, 40) + '...' : window.title;
+    const windowTitle = window.title.length > 40 ? window.title.substring(0, 40) + '.....' : window.title;
 
     card.innerHTML = `
       <div class="window-header">
@@ -196,7 +198,7 @@ function renderWindows(windows) {
           const domain = extractDomain(tab.url);
           return `
             <div class="tab-item ${tab.active ? 'active' : ''}" data-window-id="${window.id}" data-tab-id="${tab.id}">
-              <img class="tab-favicon" src="${tab.favIconUrl || `https://www.google.com/s2/favicons?domain=${domain}&sz=64`}" alt="">
+              ${getFaviconEle('tab-favicon', tab.url, tab.title).outerHTML}
               <span class="tab-title">${escapeHtml(tab.title)}</span>
               <span class="tab-domain">${domain}</span>
             </div>
@@ -278,7 +280,7 @@ function renderBookmarks(folders) {
           const domain = extractDomain(bm.url);
           return `
             <div class="bookmark-item-card" data-url="${escapeHtml(bm.url)}">
-              <img class="bookmark-favicon" src="https://www.google.com/s2/favicons?domain=${domain}&sz=64" alt="">
+              ${getFaviconEle('bookmark-favicon', bm.url, bm.title).outerHTML}
               <span class="bookmark-title">${escapeHtml(bm.title)}</span>
               <span class="bookmark-domain">${domain}</span>
             </div>
@@ -333,4 +335,33 @@ function extractDomain(url) {
   } catch {
     return '';
   }
+}
+
+function getfaviconURL(url, size = 32) {  
+  const faviconUrl = new URL(chrome.runtime.getURL('/_favicon/'));
+  faviconUrl.searchParams.set('pageUrl', url);
+  faviconUrl.searchParams.set('size', String(size));
+  return faviconUrl.toString();
+}
+
+function makeFallbackIcon(title) {
+  const text = title.trim();
+  const span = document.createElement('span');
+  span.className = 'fallback';
+  span.style.cssText = 'width:13px;height:13px;border-radius:3px;background:var(--border);font-size:8px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);color:var(--muted);flex-shrink:0';
+  span.textContent = (text[0] || '?').toUpperCase();
+  return span;
+}
+
+function getFaviconEle(classname, url, title) {
+  // 对特殊页面使用回退方案
+  // if (url.startsWith('chrome://') || 
+  //     url.startsWith('chrome-extension://') ||
+  //     url.startsWith('file://')) {
+  //   return makeFallbackIcon(url);
+  // }
+  const img = document.createElement('img');
+  img.className = classname;img.alt = ''; img.src = getfaviconURL(url);
+  img.onerror = () => img.replaceWith(makeFallbackIcon(title || url || '?'));
+  return img;
 }
