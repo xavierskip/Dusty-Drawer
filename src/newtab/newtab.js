@@ -12,11 +12,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // 监听刷新消息
-  chrome.runtime.onMessage.addListener((request) => {
-    if (request.action === 'refreshTabs') {
-      loadData();
-    }
-  });
+  // chrome.runtime.onMessage.addListener((request) => {
+  //   if (request.action === 'refreshTabs') {
+  //     loadData();
+  //   }
+  // });
 });
 
 async function init() {
@@ -148,7 +148,7 @@ async function loadData() {
 }
 
 // 加载打开的标签页
-async function loadWindows() {
+async function loadWindows(filterText='') {
   try {
     const response = await chrome.runtime.sendMessage({ action: 'getAllWindows' });
     if (response.success) {
@@ -182,13 +182,15 @@ function renderWindows(windows) {
     card.className = 'window-card';
 
     const isCurrentWindow = window.focused;
-    // 截取窗口标题，避免太长
-    const windowTitle = window.title.length > 40 ? window.title.substring(0, 40) + ' ..... ' : window.title;
 
     card.innerHTML = `
       <div class="window-header">
         <div class="window-title">
-          <span>${escapeHtml(windowTitle)}</span>
+          <div class="window-controls">
+            <span class="window-control-btn close"></span>
+            <span class="window-control-btn minimize"></span>
+            <span class="window-control-btn maximize"></span>
+          </div>
           ${isCurrentWindow ? '<span class="window-badge">当前窗口</span>' : ''}
         </div>
         <span class="tab-count">${window.tabs.length} 个标签</span>
@@ -375,3 +377,24 @@ async function currentTabUpdate(url){
   chrome.tabs.update(tab.id, { url:url });
   return;
 }
+
+// 刷新窗口和标签页的显示
+function debounce(fn, wait) {
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), wait); };
+}
+async function refresh() {
+  loadWindows();
+}
+const debouncedRefresh = debounce(refresh, 150);
+const liveEvents = [
+  chrome.tabs.onCreated, chrome.tabs.onRemoved, chrome.tabs.onUpdated,
+  chrome.tabs.onMoved, chrome.tabs.onAttached, chrome.tabs.onDetached,
+  chrome.tabs.onActivated, chrome.tabs.onReplaced,
+  chrome.windows.onCreated, chrome.windows.onRemoved, chrome.windows.onFocusChanged
+];
+const listenerRefs = liveEvents.map(evt => {
+  const handler = () => debouncedRefresh();
+  evt.addListener(handler);
+  return { evt, handler };
+});

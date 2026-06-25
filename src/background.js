@@ -129,25 +129,25 @@ async function getOrCreateWorkspaceFolder() {
 }
 
 // 监听标签页变化，通知所有新标签页刷新
-chrome.tabs.onCreated.addListener(() => notifyNewTabRefresh());
-chrome.tabs.onRemoved.addListener(() => notifyNewTabRefresh());
-chrome.tabs.onMoved.addListener(() => notifyNewTabRefresh());
-chrome.tabs.onAttached.addListener(() => notifyNewTabRefresh());
-chrome.tabs.onDetached.addListener(() => notifyNewTabRefresh());
-chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
-  if (changeInfo.title || changeInfo.url) {
-    notifyNewTabRefresh();
-  }
-});
-chrome.windows.onCreated.addListener(() => notifyNewTabRefresh());
-chrome.windows.onRemoved.addListener(() => notifyNewTabRefresh());
+// chrome.tabs.onCreated.addListener(() => notifyNewTabRefresh());
+// chrome.tabs.onRemoved.addListener(() => notifyNewTabRefresh());
+// chrome.tabs.onMoved.addListener(() => notifyNewTabRefresh());
+// chrome.tabs.onAttached.addListener(() => notifyNewTabRefresh());
+// chrome.tabs.onDetached.addListener(() => notifyNewTabRefresh());
+// chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+//   if (changeInfo.title || changeInfo.url) {
+//     notifyNewTabRefresh();
+//   }
+// });
+// chrome.windows.onCreated.addListener(() => notifyNewTabRefresh());
+// chrome.windows.onRemoved.addListener(() => notifyNewTabRefresh());
 
 // 通知所有新标签页刷新
-function notifyNewTabRefresh() {
-  chrome.runtime.sendMessage({ action: 'refreshTabs' }).catch(() => {
-    // 忽略错误（可能没有打开的新标签页在监听）
-  });
-}
+// function notifyNewTabRefresh() {
+//   chrome.runtime.sendMessage({ action: 'refreshTabs' }).catch(() => {
+//     // 忽略错误（可能没有打开的新标签页在监听）
+//   });
+// }
 
 // 处理来自 popup 和 newtab 的消息
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
