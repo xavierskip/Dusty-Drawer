@@ -25,6 +25,7 @@ body {
   flex-direction: row-reverse;
   justify-content: space-between;
   margin-bottom: 32px;
+  padding: 0px 8px;
 }
 
 .header h1 {
