@@ -135,7 +135,7 @@ function createBookmarkBarItem(bookmark) {
     link.appendChild(titleEle);
     link.addEventListener('click', (e) => {
       e.preventDefault();
-      window.location.href = bookmark.url;
+      currentTabUpdate(bookmark.url);
     });
     return link;
   }
@@ -183,7 +183,7 @@ function renderWindows(windows) {
 
     const isCurrentWindow = window.focused;
     // 截取窗口标题，避免太长
-    const windowTitle = window.title.length > 40 ? window.title.substring(0, 40) + '.....' : window.title;
+    const windowTitle = window.title.length > 40 ? window.title.substring(0, 40) + ' ..... ' : window.title;
 
     card.innerHTML = `
       <div class="window-header">
@@ -314,7 +314,7 @@ function renderBookmarks(folders) {
     card.querySelectorAll('.bookmark-item-card').forEach(item => {
       item.addEventListener('click', (e) => {
         e.stopPropagation();
-        window.location.href = item.dataset.url;
+        currentTabUpdate(item.dataset.url);
       });
     });
 
@@ -364,4 +364,14 @@ function getFaviconEle(classname, url, title) {
   img.className = classname;img.alt = ''; img.src = getfaviconURL(url);
   img.onerror = () => img.replaceWith(makeFallbackIcon(title || url || '?'));
   return img;
+}
+
+async function currentTabUpdate(url){
+  if (url.startsWith('data:')) {// data URL 只能在新标签页中打开
+    chrome.tabs.create({ url: url });
+    return;
+  }
+  const tab = await chrome.tabs.getCurrent();
+  chrome.tabs.update(tab.id, { url:url });
+  return;
 }
