@@ -10,12 +10,26 @@
   <div class="container">
     <header class="header">
       <h1>⚙️ 设置</h1>
+      <button id="backToNewTab" class="back-link">← 返回新标签页</button>
     </header>
 
     <main class="main">
       <section class="section">
         <h2>工作区设置</h2>
-
+        
+        <div class="setting-item">
+          <div class="setting-info">
+            <label class="setting-label">新建工作区</label>
+            <p class="setting-desc">创建一个新的书签文件夹作为工作区</p>
+          </div>
+          <div class="setting-control">
+            <div class="input-group">
+              <input type="text" id="newWorkspaceName" placeholder="工作区名称">
+              <button id="createWorkspace" class="btn btn-secondary">创建</button>
+            </div>
+          </div>
+        </div>
+        
         <div class="setting-item">
           <div class="setting-info">
             <label class="setting-label">当前工作区文件夹</label>
@@ -29,18 +43,6 @@
           </div>
         </div>
 
-        <div class="setting-item">
-          <div class="setting-info">
-            <label class="setting-label">新建工作区</label>
-            <p class="setting-desc">创建一个新的书签文件夹作为工作区</p>
-          </div>
-          <div class="setting-control">
-            <div class="input-group">
-              <input type="text" id="newWorkspaceName" placeholder="工作区名称">
-              <button id="createWorkspace" class="btn btn-secondary">创建</button>
-            </div>
-          </div>
-        </div>
       </section>
 
       <section class="section">

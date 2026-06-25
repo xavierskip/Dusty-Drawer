@@ -31,6 +31,11 @@ async function loadSettings() {
 
 // 绑定事件
 function bindEvents() {
+  // 返回新标签页
+  document.getElementById('backToNewTab').addEventListener('click', () => {
+    chrome.tabs.update({ url: 'chrome://newtab/' });
+  });
+
   // 选择工作区文件夹
   document.getElementById('selectWorkspace').addEventListener('click', showFolderSelector);
 
