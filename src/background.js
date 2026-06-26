@@ -170,7 +170,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 
   if (request.action === 'getAllWindows') {
-    getAllWindows().then((windows) => {
+    getAllWindows(request.filterText).then((windows) => {
       sendResponse({ success: true, windows });
     }).catch((error) => {
       sendResponse({ success: false, error: error.message });
@@ -236,12 +236,19 @@ async function getWorkspaceBookmarks() {
 }
 
 // 获取所有窗口和标签页
-async function getAllWindows() {
+async function getAllWindows(filterText='') {
   const windows = await chrome.windows.getAll({ populate: true });
 
   // 过滤掉新标签页扩展自身的页面
   return windows.map(w => {
-    const validTabs = w.tabs.filter(t => !t.url.startsWith('chrome-extension://'));
+    if (filterText === ''){
+      var validTabs = w.tabs;
+    } else{
+      var validTabs = w.tabs.filter(t => {
+        const host = new URL(t.url).hostname || new URL(t.url).href;
+        return t.title.toLowerCase().includes(filterText) || host.toLowerCase().includes(filterText);
+      });
+    }
     // 获取窗口标题：如果有活动标签页用活动标签页标题，否则用第一个标签页标题
     const activeTab = validTabs.find(t => t.active);
     const windowTitle = activeTab ? activeTab.title : (validTabs[0] ? validTabs[0].title : '未命名窗口');

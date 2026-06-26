@@ -11,6 +11,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     chrome.runtime.openOptionsPage();
   });
 
+  // 绑定过滤输入框事件
+  const filterInput = document.getElementById('filterInput');
+  if (filterInput) {
+    filterInput.addEventListener('input', (e) => {
+      loadWindows(e.target.value);
+    });
+    filterInput.addEventListener('focus', () => {
+      loadWindows(filterInput.value);
+    });
+  }
+
   // 监听刷新消息
   // chrome.runtime.onMessage.addListener((request) => {
   //   if (request.action === 'refreshTabs') {
@@ -149,8 +160,12 @@ async function loadData() {
 
 // 加载打开的标签页
 async function loadWindows(filterText='') {
+  const lf = filterText.trim().toLowerCase();
   try {
-    const response = await chrome.runtime.sendMessage({ action: 'getAllWindows' });
+    const response = await chrome.runtime.sendMessage({
+      action: 'getAllWindows',
+      filterText: lf
+    });
     if (response.success) {
       renderWindows(response.windows);
     }
@@ -384,7 +399,9 @@ function debounce(fn, wait) {
   return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), wait); };
 }
 async function refresh() {
-  loadWindows();
+  // loadWindows();
+  const filterInput = document.getElementById('filterInput');
+  loadWindows(filterInput?.value || '');
 }
 const debouncedRefresh = debounce(refresh, 150);
 const liveEvents = [
