@@ -30,19 +30,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   // });
 });
 
+let gSettings = {};
+
 async function init() {
   // 检查设置
   const config = await chrome.storage.sync.get([STORAGE_KEY]);
-  const settings = config[STORAGE_KEY] || {};
+  gSettings = config[STORAGE_KEY] || {};
 
-  if (settings.showBookmarkBar !== false) {
-    await loadBookmarkBar();
-  } else {
+  if (gSettings.hideBookmarkBar === true) {
     document.getElementById('bookmarkBar').classList.add('hidden');
+  } else {
+    await loadBookmarkBar();
   }
 
   // 应用标题换行设置
-  if (settings.wrapTitleText === true) {
+  if (gSettings.wrapTitleText === true) {
     document.body.classList.add('wrap-titles');
   }
 
@@ -317,7 +319,7 @@ function renderBookmarks(folders) {
         await chrome.runtime.sendMessage({
           action: 'openBookmarkFolder',
           folderId: folderId,
-          asTabGroup: false // 这里可以根据需要设置为 true 或 false
+          asTabGroup: gSettings.openAsTabGroup === true
         });
         // 刷新显示
         await loadBookmarks();

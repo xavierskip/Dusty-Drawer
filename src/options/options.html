@@ -9,7 +9,7 @@
 <body>
   <div class="container">
     <header class="header">
-      <h1>⚙️ 设置</h1>
+      <h1>设置 ⚙️</h1>
       <button id="backToNewTab" class="back-link">← 返回新标签页</button>
     </header>
 
@@ -50,14 +50,15 @@
 
         <div class="setting-item">
           <div class="setting-info">
-            <label class="setting-label">显示书签栏</label>
-            <p class="setting-desc">在新标签页中显示 Chrome 书签栏</p>
+            <label class="setting-label">关闭顶栏书签栏</label>
+            <p class="setting-desc">隐藏新标签页顶部的 Chrome 书签栏</p>
           </div>
           <div class="setting-control">
             <label class="toggle">
-              <input type="checkbox" id="showBookmarkBar" checked>
+              <input type="checkbox" id="hideBookmarkBar">
               <span class="toggle-slider"></span>
             </label>
+            <span class="custom-indicator" title="用户偏好">*</span>
           </div>
         </div>
 
@@ -71,6 +72,21 @@
               <input type="checkbox" id="wrapTitleText">
               <span class="toggle-slider"></span>
             </label>
+            <span class="custom-indicator" title="用户偏好">*</span>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <label class="setting-label">以标签组形式打开</label>
+            <p class="setting-desc">开启后，点击工作区书签文件夹将以标签组形式打开所有标签页</p>
+          </div>
+          <div class="setting-control">
+            <label class="toggle">
+              <input type="checkbox" id="openAsTabGroup">
+              <span class="toggle-slider"></span>
+            </label>
+            <span class="custom-indicator" title="用户偏好">*</span>
           </div>
         </div>
       </section>

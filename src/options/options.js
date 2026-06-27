@@ -25,8 +25,9 @@ async function loadSettings() {
   }
 
   // 加载开关状态
-  document.getElementById('showBookmarkBar').checked = settings.showBookmarkBar !== false;
+  document.getElementById('hideBookmarkBar').checked = settings.hideBookmarkBar === true;
   document.getElementById('wrapTitleText').checked = settings.wrapTitleText === true;
+  document.getElementById('openAsTabGroup').checked = settings.openAsTabGroup === true;
 }
 
 // 绑定事件
@@ -42,13 +43,13 @@ function bindEvents() {
   // 创建工作区
   document.getElementById('createWorkspace').addEventListener('click', createWorkspace);
 
-  // 显示书签栏开关
-  document.getElementById('showBookmarkBar').addEventListener('change', async (e) => {
+  // 关闭顶栏书签栏开关
+  document.getElementById('hideBookmarkBar').addEventListener('change', async (e) => {
     const config = await chrome.storage.sync.get([STORAGE_KEY]);
     const settings = config[STORAGE_KEY] || {};
-    settings.showBookmarkBar = e.target.checked;
+    settings.hideBookmarkBar = e.target.checked;
     await chrome.storage.sync.set({ [STORAGE_KEY]: settings });
-    showToast(e.target.checked ? '已启用书签栏' : '已禁用书签栏', 'success');
+    showToast(e.target.checked ? '已关闭顶栏书签栏' : '已显示顶栏书签栏', 'success');
   });
 
   // 标题自动换行开关
@@ -58,6 +59,15 @@ function bindEvents() {
     settings.wrapTitleText = e.target.checked;
     await chrome.storage.sync.set({ [STORAGE_KEY]: settings });
     showToast(e.target.checked ? '已开启标题自动换行' : '已关闭标题自动换行', 'success');
+  });
+
+  // 以标签组形式打开开关
+  document.getElementById('openAsTabGroup').addEventListener('change', async (e) => {
+    const config = await chrome.storage.sync.get([STORAGE_KEY]);
+    const settings = config[STORAGE_KEY] || {};
+    settings.openAsTabGroup = e.target.checked;
+    await chrome.storage.sync.set({ [STORAGE_KEY]: settings });
+    showToast(e.target.checked ? '已开启以标签组形式打开' : '已关闭以标签组形式打开', 'success');
   });
 
   // 清空工作区

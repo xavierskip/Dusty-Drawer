@@ -113,6 +113,22 @@ body {
 .setting-control {
   display: flex;
   align-items: center;
+  gap: 8px;
+}
+
+/* 自定义设置指示器 */
+.custom-indicator {
+  color: #e8a33d;
+  font-size: 20px;
+  font-weight: bold;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+/* 当开关开启时显示星号 */
+.setting-control:has(.toggle input:checked) .custom-indicator {
+  opacity: 1;
 }
 
 /* 按钮 */
