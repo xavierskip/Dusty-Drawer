@@ -400,20 +400,34 @@ function debounce(fn, wait) {
   let t;
   return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), wait); };
 }
-async function refresh() {
+async function refreshWindows() {
   // loadWindows();
   const filterInput = document.getElementById('filterInput');
-  loadWindows(filterInput?.value || '');
+  await loadWindows(filterInput?.value || '');
 }
-const debouncedRefresh = debounce(refresh, 150);
-const liveEvents = [
-  chrome.tabs.onCreated, chrome.tabs.onRemoved, chrome.tabs.onUpdated,
-  chrome.tabs.onMoved, chrome.tabs.onAttached, chrome.tabs.onDetached,
-  chrome.tabs.onActivated, chrome.tabs.onReplaced,
-  chrome.windows.onCreated, chrome.windows.onRemoved, chrome.windows.onFocusChanged
+const debouncedRefreshWindows = debounce(refreshWindows, 150);
+const windowstabsEvents = [
+  chrome.tabs.onActivated, chrome.tabs.onAttached, chrome.tabs.onCreated,
+  chrome.tabs.onDetached,  chrome.tabs.onMoved,    chrome.tabs.onRemoved,
+  chrome.tabs.onReplaced,  chrome.tabs.onUpdated,
+  chrome.windows.onCreated, chrome.windows.onFocusChanged, chrome.windows.onRemoved,
 ];
-const listenerRefs = liveEvents.map(evt => {
-  const handler = () => debouncedRefresh();
+const windowstabsEventsRefs = windowstabsEvents.map(evt => {
+  const handler = () => debouncedRefreshWindows();
+  evt.addListener(handler);
+  return { evt, handler };
+});
+// 刷新书签部分
+async function refreshBookmarks() {
+  await loadBookmarks();
+}
+const  bookmarksEvents = [
+  chrome.bookmarks.onChanged, chrome.bookmarks.onChildrenReordered, chrome.bookmarks.onCreated,
+  chrome.bookmarks.onMoved, chrome.bookmarks.onRemoved,
+];
+const  debouncedRefreshBookmarks = debounce(refreshBookmarks, 150);
+const bookmarksEventsRefs = bookmarksEvents.map(evt => {
+  const handler = () => debouncedRefreshBookmarks();
   evt.addListener(handler);
   return { evt, handler };
 });
