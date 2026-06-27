@@ -1,7 +1,7 @@
 :root {
   --bg:       #11151c;
   --surface:  #171c25;
-  --surface2: #1d2330;
+  --surface2: #1c2331;
   --border:   #2a313c;
   --ink:      #e9e6df;
   --muted:    #868c97;
@@ -67,7 +67,7 @@ body {
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
-  color: var(--muted);
+  color: var(--ink);
   text-decoration: none;
   max-width: 150px;
   word-break: break-word;
@@ -76,7 +76,9 @@ body {
 
 .bookmark-item:hover {
   background: var(--surface2);
-  color: var(--ink);
+}
+.bookmark-item>.title:hover{
+  color: var(--amber);
 }
 
 a.bookmark-item:active {
@@ -425,8 +427,18 @@ a.bookmark-item:active {
 }
 
 .tab-item:hover,
-.bookmark-item-card:hover {
+.bookmark-item-card:hover,
+.folder-header:hover ~ .bookmark-list .bookmark-item-card {
   color: var(--amber);
+  background: radial-gradient(circle, rgb(226 154 57 / 30%) 0.5px, transparent 1px) 1px 1px / 2px 2px, rgb(0 0 0 / 0%);
+}
+
+.folder-header:hover ~ .bookmark-list .bookmark-item-card .bookmark-title{
+  color: var(--amber);
+}
+
+.folder-header:hover ~ .bookmark-list .bookmark-item-card .bookmark-domain{
+  color: var(--ink);
 }
 
 .tab-item.active {
