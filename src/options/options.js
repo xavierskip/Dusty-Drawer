@@ -28,6 +28,7 @@ async function loadSettings() {
   document.getElementById('hideBookmarkBar').checked = settings.hideBookmarkBar === true;
   document.getElementById('wrapTitleText').checked = settings.wrapTitleText === true;
   document.getElementById('openAsTabGroup').checked = settings.openAsTabGroup === true;
+  document.getElementById('disableOpenAnimation').checked = settings.disableOpenAnimation === true;
 }
 
 // 绑定事件
@@ -68,6 +69,15 @@ function bindEvents() {
     settings.openAsTabGroup = e.target.checked;
     await chrome.storage.sync.set({ [STORAGE_KEY]: settings });
     showToast(e.target.checked ? '已开启以标签组形式打开' : '已关闭以标签组形式打开', 'success');
+  });
+
+  // 关闭打开单个链接时的页面动画效果开关
+  document.getElementById('disableOpenAnimation').addEventListener('change', async (e) => {
+    const config = await chrome.storage.sync.get([STORAGE_KEY]);
+    const settings = config[STORAGE_KEY] || {};
+    settings.disableOpenAnimation = e.target.checked;
+    await chrome.storage.sync.set({ [STORAGE_KEY]: settings });
+    showToast(e.target.checked ? '已关闭页面动画效果' : '已开启页面动画效果', 'success');
   });
 
   // 清空工作区

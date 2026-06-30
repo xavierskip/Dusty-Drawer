@@ -562,3 +562,11 @@ body.wrap-titles .bookmark-title {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--surface2);
 }
+
+/* 闭幕动画 */
+
+@property --mask-r {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}

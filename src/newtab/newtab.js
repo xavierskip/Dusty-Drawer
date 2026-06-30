@@ -389,6 +389,9 @@ async function currentTabUpdate(url){
   if (url.startsWith('data:')) {// data URL 只能在新标签页中打开
     chrome.tabs.create({ url: url });
     return;
+  };
+  if (gSettings.disableOpenAnimation !== true) {
+    closing();  // UI:闭幕动画效果
   }
   const tab = await chrome.tabs.getCurrent();
   chrome.tabs.update(tab.id, { url:url });
@@ -403,7 +406,7 @@ function debounce(fn, wait) {
 async function refreshWindows() {
   // loadWindows();
   const filterInput = document.getElementById('filterInput');
-  await loadWindows(filterInput?.value || '');
+  loadWindows(filterInput?.value || '');
 }
 const debouncedRefreshWindows = debounce(refreshWindows, 150);
 const windowstabsEvents = [
@@ -419,7 +422,7 @@ const windowstabsEventsRefs = windowstabsEvents.map(evt => {
 });
 // 刷新书签部分
 async function refreshBookmarks() {
-  await loadBookmarks();
+  loadBookmarks();
 }
 const  bookmarksEvents = [
   chrome.bookmarks.onChanged, chrome.bookmarks.onChildrenReordered, chrome.bookmarks.onCreated,
@@ -431,3 +434,75 @@ const bookmarksEventsRefs = bookmarksEvents.map(evt => {
   evt.addListener(handler);
   return { evt, handler };
 });
+
+// css 动画 闭幕效果
+// 基于窗口的尺寸
+function getWHRT() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const r = Math.ceil(Math.hypot(w, h) / 2) + 50;
+  const t = Math.max(0.1, r / 1500);
+  console.log({ width: w, height: h, maskr: r, transtime: t });
+  return { width: w, height: h, maskr: r, transtime: t };
+}
+async function closing() { 
+  const { maskr: r, transtime: t } = getWHRT();  // 算出窗口的尺寸
+  const st = document.createElement('div');
+  st.id = "stage";
+  st.style.cssText = `
+    position: fixed;
+    inset: 0px;
+    background: #090909;
+    --mask-r: ${r}px;
+    mask-image: radial-gradient(circle at center, transparent var(--mask-r), black calc(var(--mask-r) + 1px));
+    transition: --mask-r ${t}s linear;
+  `;
+  document.body.appendChild(st);
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      st.style.setProperty('--mask-r', '-1px');   // 终点，触发动画
+    });
+  });
+}
+
+// 基于元素的尺寸
+function getEleWHRT(ele){
+  const { width: w, height: h } = ele.getBoundingClientRect();
+  const r = Math.ceil(Math.hypot(w, h) / 2) + 50;
+  const t = Math.max(.1, r / 1500);
+  console.log({width:w, height:h, maskr:r, transtime:t});
+  return { width: w, height: h, maskr: r, transtime: t }
+}
+async function closing1() {
+  const st = document.createElement('div');
+  st.id = "stage";
+  st.style.cssText = `
+    position: fixed;
+    inset: 0px;
+    background: #f09c9c;
+  `;
+  document.body.appendChild(st);
+
+  // 这里的 getBoundingClientRect() 会触发重排，但没关系，我们后面重新设定起点
+  const { maskr: r, transtime: t } = getEleWHRT(st);
+
+  // 1. 先设置起点状态，【不要】加 transition
+  st.style.setProperty('--mask-r', `${r}px`);
+  st.style.maskImage = `radial-gradient(circle at center, transparent var(--mask-r), black calc(var(--mask-r) + 1px))`;
+
+  // 2. 强制触发重排，让浏览器牢牢记住此时的 --mask-r 就是起点 (r)
+  st.offsetHeight; 
+
+  // 3. 加上 transition 过渡属性
+  st.style.transition = `--mask-r ${t}s linear`;
+  st.style.setProperty('--mask-r', '-1px');
+
+  // 4. 下一帧设置终点，触发完美动画
+  // requestAnimationFrame(() => {
+  //   requestAnimationFrame(() => {
+  //     st.style.transition = `--mask-r ${t}s linear`;
+  //     st.style.setProperty('--mask-r', '-1px');   // 终点，触发动画
+  //   });
+  // });
+}
