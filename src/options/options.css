@@ -1,3 +1,34 @@
+:root {
+  /* 三色基底 */
+  --opt-bg-pink:    #fdbdbd45;  /* 雾粉 — 页面主背景 */
+  --opt-bg-lilac:   #c9bfe0;    /* 雾蓝紫 — 辅助区块 */
+  --opt-bg-beige:   #f0e3d0;    /* 燕麦米 — 辅助区块 */
+  --opt-bg: #ffebd8b0;
+
+  /* 表面 */
+  --opt-surface:    #fcf8f3;    /* 米白 — 卡片 / 弹窗 */
+  --opt-navbar:     #ece4e0;    /* 杏灰 — 顶栏 / 侧栏 */
+  --opt-border:     #e5dcd2;    /* 浅燕麦 — 边框 / 分割线 */
+
+  /* 文字 */
+  --opt-text:       #6b5b73;    /* 暗紫灰 — 标题 */
+  --opt-text-sub:   #8a7d7d;    /* 灰棕 — 正文 */
+  --opt-text-hint:  #b8aeb0;    /* 灰雾粉 — 占位文字 */
+
+  /* 交互 */
+  --opt-accent:     #a99bc7;    /* 雾紫 — 主按钮 */
+  --opt-accent-hv:  #8c7bab;    /* 深雾紫 — hover 态 */
+  --opt-tag:        #f4e9da;    /* 浅米 — 次级 tag */
+  --opt-button:     #725a9ddb;    /* 深紫 — 普通按钮 */
+  --opt-button-hv:  #331774d4;    /* 深紫 — hover 态 */
+  --opt-button-text:#fff5ea;
+  --opt-cell-bg:    #5853791a;
+  --opt-cell-text:  #585379;
+  --opt-red: #ff5656;
+  --opt-black: #202124;
+  --opt-bg-white: #f8f9fa;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -8,8 +39,8 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   font-size: 14px;
   line-height: 1.5;
-  color: #202124;
-  background: #f0f2f5;
+  color: var(--opt-black);
+  background: var(--opt-bg);
   min-height: 100vh;
 }
 
@@ -31,7 +62,7 @@ body {
 .header h1 {
   font-size: 28px;
   font-weight: 600;
-  color: #1a73e8;
+  color: var(--opt-text);
 }
 
 .back-link {
@@ -39,7 +70,7 @@ body {
   align-items: center;
   gap: 4px;
   font-size: 14px;
-  color: #5f6368;
+  color: var(--opt-text-sub);
   text-decoration: none;
   transition: color 0.2s;
   background: none;
@@ -49,11 +80,11 @@ body {
 }
 
 .back-link:hover {
-  color: #1a73e8;
+  color: var(--opt-text);
 }
 
 .section {
-  background: #fff;
+  background: var(--opt-surface);
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 24px;
@@ -63,14 +94,14 @@ body {
 .section h2 {
   font-size: 16px;
   font-weight: 600;
-  color: #202124;
+  color: var(--opt-text);
   margin-bottom: 20px;
   padding-bottom: 12px;
-  border-bottom: 1px solid #e8eaed;
+  border-bottom: 1px solid var(--opt-navbar);
 }
 
 .section.danger-zone h2 {
-  color: #d93025;
+  color: var(--opt-red);
   border-color: #fce8e8;
 }
 
@@ -79,7 +110,7 @@ body {
   justify-content: space-between;
   align-items: flex-start;
   padding: 16px 0;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--opt-navbar);
 }
 
 .setting-item:last-child {
@@ -100,13 +131,13 @@ body {
   display: block;
   font-size: 14px;
   font-weight: 500;
-  color: #202124;
+  color: var(--opt-text);
   margin-bottom: 4px;
 }
 
 .setting-desc {
   font-size: 13px;
-  color: #5f6368;
+  color: var(--opt-text-sub);
   line-height: 1.5;
 }
 
@@ -143,26 +174,13 @@ body {
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.4s;
+  background: var(--opt-button);
+  color: var(--opt-button-text);
 }
 
-.btn-primary {
-  background: #1a73e8;
-  color: white;
-}
-
-.btn-primary:hover {
-  background: #1557b0;
-}
-
-.btn-secondary {
-  background: #f8f9fa;
-  color: #5f6368;
-  border: 1px solid #dadce0;
-}
-
-.btn-secondary:hover {
-  background: #e8eaed;
+.btn:hover {
+  background: var(--opt-button-hv);
 }
 
 .btn-danger {
@@ -185,11 +203,11 @@ body {
 
 .workspace-name {
   font-size: 14px;
-  color: #5f6368;
+  color: var(--opt-cell-text);
   padding: 6px 12px;
-  background: #f8f9fa;
+  background: var(--opt-cell-bg);
   border-radius: 4px;
-  border: 1px solid #e8eaed;
+  border: 1px solid var(--opt-text-hint);
 }
 
 /* 输入组 */
@@ -200,7 +218,7 @@ body {
 
 .input-group input {
   padding: 8px 12px;
-  border: 1px solid #dadce0;
+  border: 2px solid var(--opt-navbar);
   border-radius: 4px;
   font-size: 14px;
   width: 200px;
@@ -208,7 +226,7 @@ body {
 
 .input-group input:focus {
   outline: none;
-  border-color: #1a73e8;
+  border-color: var(--opt-border);
 }
 
 /* 开关 */
@@ -250,7 +268,7 @@ body {
 }
 
 input:checked + .toggle-slider {
-  background-color: #1a73e8;
+  background-color: var(--opt-accent-hv);
 }
 
 input:checked + .toggle-slider:before {
@@ -303,39 +321,58 @@ input:checked + .toggle-slider:before {
 .modal {
   background: #fff;
   border-radius: 12px;
-  padding: 24px;
   width: 90%;
   max-width: 400px;
   max-height: 80vh;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal-header {
+  padding: 24px 24px 16px;
+  flex-shrink: 0;
 }
 
 .modal h3 {
-  margin-bottom: 16px;
   font-size: 16px;
 }
 
+.modal-body {
+  overflow-y: auto;
+  padding: 0 24px;
+}
+
 .folder-tree {
-  margin-bottom: 16px;
+  padding-bottom: 8px;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  flex-shrink: 0;
+  display: flex;
+  gap: 36px;
+  justify-content: space-between;
+  background: var(--opt-bg-white);
 }
 
 .folder-tree-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  border-radius: 4px;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
   cursor: pointer;
   transition: background 0.15s;
 }
 
 .folder-tree-item:hover {
-  background: #f8f9fa;
+  background: var(--opt-bg-white);
 }
 
 .folder-tree-item.selected {
   background: #e8f0fe;
-  color: #1a73e8;
+  color: var(--opt-red);
 }
 
 .folder-tree-item .icon {

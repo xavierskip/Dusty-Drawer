@@ -93,11 +93,15 @@ async function showFolderSelector() {
   overlay.className = 'modal-overlay';
   overlay.innerHTML = `
     <div class="modal">
-      <h3>选择工作区文件夹</h3>
-      <div class="folder-tree" id="folderTree">
-        <!-- 动态填充 -->
+      <div class="modal-header">
+        <h3>选择工作区文件夹</h3>
       </div>
-      <div class="modal-actions">
+      <div class="modal-body">
+        <div class="folder-tree" id="folderTree">
+          <!-- 动态填充 -->
+        </div>
+      </div>
+      <div class="modal-footer">
         <button class="btn btn-secondary" id="cancelSelect">取消</button>
         <button class="btn btn-primary" id="confirmSelect" disabled>选择</button>
       </div>
