@@ -570,3 +570,12 @@ body.wrap-titles .bookmark-title {
   inherits: false;
   initial-value: 0px;
 }
+
+/* 闭幕 loading 图标 */
+#stage {
+  background: #090909;
+  background-image: url(loading.svg);
+  background-repeat: no-repeat;
+  background-size: 9%;
+  background-position: bottom 50px right 100px;
+}

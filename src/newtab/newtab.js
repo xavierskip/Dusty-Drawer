@@ -452,7 +452,6 @@ async function closing() {
   st.style.cssText = `
     position: fixed;
     inset: 0px;
-    background: #090909;
     --mask-r: ${r}px;
     mask-image: radial-gradient(circle at center, transparent var(--mask-r), black calc(var(--mask-r) + 1px));
     transition: --mask-r ${t}s linear;
