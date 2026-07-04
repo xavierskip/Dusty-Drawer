@@ -1,6 +1,6 @@
 // 设置页面脚本
 
-const STORAGE_KEY = 'tabBookmarkSaver';
+import { STORAGE_KEY } from '/constants.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   await loadSettings();

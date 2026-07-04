@@ -1,6 +1,6 @@
 // 新标签页脚本
 
-const STORAGE_KEY = 'tabBookmarkSaver';
+import { STORAGE_KEY } from '/constants.js';
 
 // 初始化
 document.addEventListener('DOMContentLoaded', async () => {

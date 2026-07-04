@@ -1,8 +1,6 @@
 // 后台服务脚本
 
-// 默认存储键
-const STORAGE_KEY = 'tabBookmarkSaver';
-const DEFAULT_FOLDER_NAME = '工作区';
+import { STORAGE_KEY, DEFAULT_FOLDER_NAME } from '/constants.js';
 
 // return tabGroup color randomly
 function randomGroupColor() {
