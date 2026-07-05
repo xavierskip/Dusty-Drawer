@@ -83,6 +83,39 @@ body {
   color: var(--opt-text);
 }
 
+.setup-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #fff3e0;
+  border: 1px solid #ffcc80;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  color: #e65100;
+}
+
+.setup-banner.hidden {
+  display: none;
+}
+
+.setup-banner-icon {
+  font-size: 20px;
+  line-height: 1.4;
+}
+
+.setup-banner-content strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.setup-banner-content p {
+  font-size: 13px;
+  margin: 0;
+  color: #bf360c;
+}
+
 .section {
   background: var(--opt-surface);
   border-radius: 12px;
@@ -204,12 +237,19 @@ body {
 
 .workspace-name {
   font-size: 14px;
+  font-weight: 800;
   color: var(--opt-cell-text);
   padding: 6px 16px;
   background: var(--opt-cell-bg);
   border-radius: 10px;
   border-bottom: 1px solid var(--opt-text-hint);
   border-right: 1px solid var(--opt-text-hint);
+}
+
+.workspace-name.unset {
+  background: #fce8e8;
+  color: #d93025;
+  border: 1px solid #d93025;
 }
 
 /* 输入组 */

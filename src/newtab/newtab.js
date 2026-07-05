@@ -251,6 +251,11 @@ function renderWindows(windows) {
 // 加载工作区书签
 async function loadBookmarks() {
   try {
+    if (!gSettings.workspaceFolderId) {
+      renderWorkspaceNotConfigured();
+      return;
+    }
+
     const response = await chrome.runtime.sendMessage({ action: 'getWorkspaceBookmarks' });
     if (response.success) {
       renderBookmarks(response.bookmarks);
@@ -258,6 +263,30 @@ async function loadBookmarks() {
   } catch (error) {
     console.error('加载书签失败:', error);
   }
+}
+
+// 渲染未设置工作区提示
+function renderWorkspaceNotConfigured() {
+  const container = document.getElementById('bookmarksContainer');
+  const badge = document.getElementById('bookmarksBadge');
+
+  container.innerHTML = '';
+  badge.textContent = '0';
+
+  container.innerHTML = `
+    <div class="empty-state">
+      <div class="empty-state-icon">⚙️</div>
+      <div class="empty-state-text">书签文件夹未设置</div>
+      <div class="empty-state-text" style="font-size: 12px; margin-top: 4px;">
+        请在<a href="#" id="openOptionsLink" style="color: var(--amber); text-decoration: underline;">设置页面</a>设置
+      </div>
+    </div>
+  `;
+
+  document.getElementById('openOptionsLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    chrome.runtime.openOptionsPage();
+  });
 }
 
 // 渲染书签

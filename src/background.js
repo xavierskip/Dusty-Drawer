@@ -1,6 +1,6 @@
 // 后台服务脚本
 
-import { STORAGE_KEY, DEFAULT_FOLDER_NAME } from '/constants.js';
+import { STORAGE_KEY } from '/constants.js';
 
 // return tabGroup color randomly
 function randomGroupColor() {
@@ -9,7 +9,7 @@ function randomGroupColor() {
 }
 
 // 初始化
-chrome.runtime.onInstalled.addListener(() => {
+chrome.runtime.onInstalled.addListener((details) => {
   // 创建右键菜单
   chrome.contextMenus.create({
     id: 'saveTabsToWorkspace',
@@ -22,19 +22,57 @@ chrome.runtime.onInstalled.addListener(() => {
     if (!result[STORAGE_KEY]) {
       chrome.storage.sync.set({
         [STORAGE_KEY]: {
-          workspaceFolderId: null,
-          showBookmarkBar: true
+          workspaceFolderId: null
         }
       });
     }
   });
+
+  // 首次安装时打开设置页面，引导用户配置工作区
+  if (details.reason === 'install') {
+    chrome.runtime.openOptionsPage();
+  }
+
+  // 根据当前工作区配置更新右键菜单标题
+  updateContextMenuTitle();
 });
 
 // 处理右键菜单点击
-chrome.contextMenus.onClicked.addListener((info, tab) => {
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === 'saveTabsToWorkspace') {
+    const workspaceFolderId = await getWorkspaceFolder();
+    if (!workspaceFolderId) {
+      chrome.runtime.openOptionsPage();
+      return;
+    }
     saveCurrentWindowTabs();
   }
+});
+
+// 根据工作区配置状态更新右键菜单标题
+async function updateContextMenuTitle() {
+  const workspaceFolderId = await getWorkspaceFolder();
+  const title = workspaceFolderId
+    ? '保存当前窗口标签页到工作区'
+    : '⚠ [请先设置书签的文件夹]';
+
+  chrome.contextMenus.update('saveTabsToWorkspace', { title }, () => {
+    if (chrome.runtime.lastError) {
+      console.error('更新右键菜单失败:', chrome.runtime.lastError.message);
+    }
+  });
+}
+
+// 配置变化时更新右键菜单提示
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'sync' && changes[STORAGE_KEY]) {
+    updateContextMenuTitle();
+  }
+});
+
+// 工作区文件夹被删除时也更新菜单提示
+chrome.bookmarks.onRemoved.addListener(() => {
+  updateContextMenuTitle();
 });
 
 // 保存当前窗口的标签页到工作区（使用默认名称）
@@ -54,8 +92,11 @@ async function saveCurrentWindowTabs(customName = null) {
       return;
     }
 
-    // 获取或创建工作区文件夹
-    const workspaceFolderId = await getOrCreateWorkspaceFolder();
+    // 获取已配置的工作区文件夹
+    const workspaceFolderId = await getWorkspaceFolder();
+    if (!workspaceFolderId) {
+      throw new Error('未设置工作区文件夹，请先在设置页面中选择或创建工作区');
+    }
 
     // 生成文件夹名称
     const folderName = customName || getDefaultFolderName();
@@ -97,8 +138,8 @@ function getDefaultFolderName() {
   return `${year}-${month}-${day} ${hours}:${minutes}`;
 }
 
-// 获取或创建工作区文件夹
-async function getOrCreateWorkspaceFolder() {
+// 获取已配置的工作区文件夹 ID，未配置或不存在时返回 null
+async function getWorkspaceFolder() {
   const result = await chrome.storage.sync.get([STORAGE_KEY]);
   const config = result[STORAGE_KEY] || {};
 
@@ -110,20 +151,11 @@ async function getOrCreateWorkspaceFolder() {
         return config.workspaceFolderId;
       }
     } catch (e) {
-      // 文件夹不存在，创建新的
+      // 文件夹不存在
     }
   }
 
-  // 创建新的工作区文件夹
-  const newFolder = await chrome.bookmarks.create({
-    title: DEFAULT_FOLDER_NAME
-  });
-
-  // 保存文件夹ID
-  config.workspaceFolderId = newFolder.id;
-  await chrome.storage.sync.set({ [STORAGE_KEY]: config });
-
-  return newFolder.id;
+  return null;
 }
 
 // 监听标签页变化，通知所有新标签页刷新
@@ -206,7 +238,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 // 获取工作区的书签
 async function getWorkspaceBookmarks() {
-  const workspaceFolderId = await getOrCreateWorkspaceFolder();
+  const workspaceFolderId = await getWorkspaceFolder();
+  if (!workspaceFolderId) {
+    return [];
+  }
+
   const bookmarks = await chrome.bookmarks.getChildren(workspaceFolderId);
 
   // 只返回文件夹，按创建时间倒序

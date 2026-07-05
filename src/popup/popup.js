@@ -1,6 +1,14 @@
 // Popup 页面脚本
 
+import { STORAGE_KEY } from '/constants.js';
+
 document.addEventListener('DOMContentLoaded', async () => {
+  const hasWorkspace = await hasWorkspaceFolder();
+  if (!hasWorkspace) {
+    renderSetupRequired();
+    return;
+  }
+
   // 获取统计信息
   await loadStats();
 
@@ -14,6 +22,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 });
+
+// 检查是否已配置工作区文件夹
+async function hasWorkspaceFolder() {
+  try {
+    const result = await chrome.storage.sync.get([STORAGE_KEY]);
+    const settings = result[STORAGE_KEY] || {};
+    return !!settings.workspaceFolderId;
+  } catch (error) {
+    console.error('检查工作区失败:', error);
+    return false;
+  }
+}
+
+// 显示需要设置工作区的提示
+function renderSetupRequired() {
+  const container = document.querySelector('.container');
+  container.innerHTML = `
+    <div class="section">
+      <h2>未设置工作区</h2>
+      <p style="margin-bottom: 16px; color: #5f6368;">使用扩展前，请先在设置页面中选择或创建一个工作区文件夹。</p>
+      <button id="openOptions" class="primary-btn">打开设置</button>
+    </div>
+    <div id="status" class="status"></div>
+  `;
+
+  document.getElementById('openOptions').addEventListener('click', () => {
+    chrome.runtime.openOptionsPage();
+  });
+}
 
 // 加载统计信息
 async function loadStats() {

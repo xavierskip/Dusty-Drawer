@@ -13,22 +13,40 @@ async function loadSettings() {
   const settings = config[STORAGE_KEY] || {};
 
   // 加载工作区显示
+  const workspaceNameEl = document.querySelector('.workspace-name');
+  let hasWorkspace = false;
+
   if (settings.workspaceFolderId) {
     try {
       const folder = await chrome.bookmarks.get(settings.workspaceFolderId);
       if (folder && folder.length > 0) {
-        document.querySelector('.workspace-name').textContent = folder[0].title;
+        workspaceNameEl.textContent = folder[0].title;
+        hasWorkspace = true;
       }
     } catch (e) {
-      document.querySelector('.workspace-name').textContent = '未找到（已删除）';
+      workspaceNameEl.textContent = '未找到（已删除）';
     }
   }
+
+  workspaceNameEl.classList.toggle('unset', !hasWorkspace);
+  updateSetupBanner(hasWorkspace);
 
   // 加载开关状态
   document.getElementById('hideBookmarkBar').checked = settings.hideBookmarkBar === true;
   document.getElementById('wrapTitleText').checked = settings.wrapTitleText === true;
   document.getElementById('openAsTabGroup').checked = settings.openAsTabGroup === true;
   document.getElementById('disableOpenAnimation').checked = settings.disableOpenAnimation === true;
+}
+
+// 更新顶部设置提示横幅
+// hasWorkspace: true 表示已设置工作区，隐藏横幅；false 表示未设置，显示横幅
+function updateSetupBanner(hasWorkspace) {
+  const banner = document.getElementById('setupBanner');
+  if (hasWorkspace) {
+    banner.classList.add('hidden');
+  } else {
+    banner.classList.remove('hidden');
+  }
 }
 
 // 绑定事件
@@ -165,9 +183,12 @@ async function showFolderSelector() {
           settings.workspaceFolderId = selectedId;
           await chrome.storage.sync.set({ [STORAGE_KEY]: settings });
 
-          document.querySelector('.workspace-name').textContent = folder[0].title;
+          const workspaceNameEl = document.querySelector('.workspace-name');
+          workspaceNameEl.textContent = folder[0].title;
+          workspaceNameEl.classList.remove('unset');
           showToast('工作区已更新', 'success');
           overlay.remove();
+          updateSetupBanner(true);
         }
       } catch (error) {
         showToast('选择失败: ' + error.message, 'error');
@@ -203,8 +224,11 @@ async function createWorkspace() {
     await chrome.storage.sync.set({ [STORAGE_KEY]: settings });
 
     // 更新显示
-    document.querySelector('.workspace-name').textContent = name;
+    const workspaceNameEl = document.querySelector('.workspace-name');
+    workspaceNameEl.textContent = name;
+    workspaceNameEl.classList.remove('unset');
     nameInput.value = '';
+    updateSetupBanner(true);
 
     showToast('工作区创建成功', 'success');
   } catch (error) {
