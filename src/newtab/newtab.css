@@ -1,5 +1,6 @@
 :root {
   --bg:       #11151c;
+  --bg1:      #0f1319;
   --surface:  #171c25;
   --surface2: #1c2331;
   --border:   #2a313c;
@@ -26,7 +27,10 @@ body {
   color: var(--ink);
   background: var(--bg);
   min-height: 100vh;
-  background: radial-gradient(circle, rgb(131 128 122 / 10%) 1px, transparent 2px) 0px 0px / 30px 40px, var(--bg);
+  /* background: radial-gradient(circle, rgb(131 128 122 / 10%) 1px, transparent 2px) 0px 0px / 30px 40px, var(--bg); */
+  background: linear-gradient(0deg,  var(--bg1) 25%, transparent 26%), linear-gradient(270deg, var(--bg1) 25%, transparent 26%), linear-gradient(180deg, #1d2026 25%, transparent 26%), linear-gradient(90deg, #232526 25%, transparent 26%);
+  background-size: 1em 1em;
+  background-color: var(--bg1);
 }
 
 .active-a{
@@ -578,4 +582,18 @@ body.wrap-titles .bookmark-title {
   background-repeat: no-repeat;
   background-size: 9%;
   background-position: bottom 50px right 100px;
+}
+
+/* 页脚 */
+.site-footer {
+    position: relative;
+    height: 160px;
+    overflow: hidden;
+}
+.site-footer::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 0%, var(--bg1) 90%);
+    pointer-events: none;
 }
