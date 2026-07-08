@@ -54,7 +54,7 @@ async function updateContextMenuTitle() {
   const workspaceFolderId = await getWorkspaceFolder();
   const title = workspaceFolderId
     ? '保存当前窗口标签页到工作区'
-    : '⚠ [请先设置书签的文件夹]';
+    : '⚠ [请先设置抽屉文件夹]';
 
   chrome.contextMenus.update('saveTabsToWorkspace', { title }, () => {
     if (chrome.runtime.lastError) {

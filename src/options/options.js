@@ -23,7 +23,7 @@ async function loadSettings() {
   const settings = config[STORAGE_KEY] || {};
 
   // 加载工作区显示
-  const workspaceNameEl = document.querySelector('.workspace-name');
+  const workspaceNameEl = document.getElementById('currentWorkspaceName');
   let hasWorkspace = false;
 
   if (settings.workspaceFolderId) {
@@ -36,6 +36,8 @@ async function loadSettings() {
     } catch (e) {
       workspaceNameEl.textContent = '未找到（已删除）';
     }
+  } else {
+    workspaceNameEl.textContent = '未设置';
   }
 
   workspaceNameEl.classList.toggle('unset', !hasWorkspace);
@@ -193,7 +195,7 @@ async function showFolderSelector() {
           settings.workspaceFolderId = selectedId;
           await chrome.storage.sync.set({ [STORAGE_KEY]: settings });
 
-          const workspaceNameEl = document.querySelector('.workspace-name');
+          const workspaceNameEl = document.getElementById('currentWorkspaceName');
           workspaceNameEl.textContent = folder[0].title;
           workspaceNameEl.classList.remove('unset');
           showToast('工作区已更新', 'success');
@@ -234,7 +236,7 @@ async function createWorkspace() {
     await chrome.storage.sync.set({ [STORAGE_KEY]: settings });
 
     // 更新显示
-    const workspaceNameEl = document.querySelector('.workspace-name');
+    const workspaceNameEl = document.getElementById('currentWorkspaceName');
     workspaceNameEl.textContent = name;
     workspaceNameEl.classList.remove('unset');
     nameInput.value = '';

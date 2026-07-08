@@ -16,38 +16,41 @@
     <div id="setupBanner" class="setup-banner hidden">
       <span class="setup-banner-icon">⚠️</span>
       <div class="setup-banner-content">
-        <strong>尚未设置工作区文件夹</strong>
-        <p>请先在下方「当前工作区文件夹」中选择一个文件夹，或创建一个。</p>
+        <strong>尚未设置工作区</strong>
+        <p>请在下方创建一个新的工作区，或选择一个已有文件夹。</p>
       </div>
     </div>
 
     <main class="main">
       <section class="section">
-        <h2>工作区设置</h2>
-        
+        <div class="section-header-with-status">
+          <h2>工作区设置</h2>
+          <div class="workspace-status">
+            <span class="status-hint">当前抽屉 🗃️ </span>
+            <span class="workspace-name" id="currentWorkspaceName"></span>
+          </div>
+        </div>
+
         <div class="setting-item">
           <div class="setting-info">
-            <label class="setting-label">新建工作区</label>
-            <p class="setting-desc">创建一个新的书签文件夹作为工作区</p>
+            <label class="setting-label" for="newWorkspaceName">创建工作区</label>
+            <p class="setting-desc">新建一个书签文件夹，并自动将其设为当前工作区</p>
           </div>
           <div class="setting-control">
             <div class="input-group">
-              <input type="text" id="newWorkspaceName" placeholder="工作区名称">
+              <input type="text" id="newWorkspaceName" placeholder="例如：我的工作区">
               <button id="createWorkspace" class="btn btn-secondary">创建</button>
             </div>
           </div>
         </div>
-        
+
         <div class="setting-item">
           <div class="setting-info">
-            <label class="setting-label">当前工作区文件夹</label>
-            <p class="setting-desc">选择一个书签文件夹作为工作区，所有保存的标签页将被存储在这里</p>
+            <label class="setting-label">选择工作区</label>
+            <p class="setting-desc">从已有书签文件夹中选择一个作为工作区，保存的标签页将存放在这里</p>
           </div>
           <div class="setting-control">
-            <div id="currentWorkspace" class="workspace-display">
-              <span class="workspace-name">未设置</span>
-              <button id="selectWorkspace" class="btn btn-primary">选择文件夹</button>
-            </div>
+            <button id="selectWorkspace" class="btn btn-primary">选择文件夹</button>
           </div>
         </div>
 
