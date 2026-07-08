@@ -272,7 +272,7 @@ body {
 .workspace-name.unset {
   background: #fce8e8;
   color: #d93025;
-  border-color: #d93025;
+  border:0;
 }
 
 /* 输入组 */
