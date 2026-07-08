@@ -246,23 +246,43 @@ async function clearWorkspace() {
     return;
   }
 
-  if (!confirm('确定要清空工作区中的所有书签吗？此操作不可撤销！')) {
-    return;
-  }
+  // 扩展不会执行真正的删除操作，而是引导用户自行在书签管理器中处理
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal">
+      <div class="modal-header">
+        <h3>🙅 这里不会真的清空</h3>
+      </div>
+      <div class="modal-body">
+        <p>扩展不会删除工作区中的内容。</p>
+        <p>请打开 Chrome 书签管理器，找到工作区文件夹后手动删除。</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="cancelClear">知道了</button>
+        <button class="btn btn-primary" id="openBookmarks">打开书签管理器</button>
+      </div>
+    </div>
+  `;
 
-  try {
-    // 获取工作区中的所有子项
-    const children = await chrome.bookmarks.getChildren(settings.workspaceFolderId);
+  document.body.appendChild(overlay);
 
-    // 删除所有子项
-    for (const child of children) {
-      await chrome.bookmarks.removeTree(child.id);
+  document.getElementById('cancelClear').addEventListener('click', () => {
+    overlay.remove();
+  });
+
+  document.getElementById('openBookmarks').addEventListener('click', () => {
+    const url = new URL('chrome://bookmarks/');
+    url.searchParams.set('id', settings.workspaceFolderId);
+    chrome.tabs.create({ url: url.toString() });
+    overlay.remove();
+  });
+
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      overlay.remove();
     }
-
-    showToast('工作区已清空', 'success');
-  } catch (error) {
-    showToast('清空失败: ' + error.message, 'error');
-  }
+  });
 }
 
 // 显示 Toast 消息

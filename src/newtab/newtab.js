@@ -256,6 +256,14 @@ async function loadBookmarks() {
       return;
     }
 
+    // 验证工作区文件夹是否存在
+    try {
+      await chrome.bookmarks.get(gSettings.workspaceFolderId);
+    } catch (e) {
+      renderWorkspaceMissing();
+      return;
+    }
+
     const response = await chrome.runtime.sendMessage({ action: 'getWorkspaceBookmarks' });
     if (response.success) {
       renderBookmarks(response.bookmarks);
@@ -279,6 +287,30 @@ function renderWorkspaceNotConfigured() {
       <div class="empty-state-text">书签文件夹未设置</div>
       <div class="empty-state-text" style="font-size: 12px; margin-top: 4px;">
         请在<a href="#" id="openOptionsLink" style="color: var(--amber); text-decoration: underline;">设置页面</a>设置
+      </div>
+    </div>
+  `;
+
+  document.getElementById('openOptionsLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    chrome.runtime.openOptionsPage();
+  });
+}
+
+// 渲染工作区文件夹丢失提示
+function renderWorkspaceMissing() {
+  const container = document.getElementById('bookmarksContainer');
+  const badge = document.getElementById('bookmarksBadge');
+
+  container.innerHTML = '';
+  badge.textContent = '0';
+
+  container.innerHTML = `
+    <div class="empty-state">
+      <div class="empty-state-icon">⚠️</div>
+      <div class="empty-state-text">工作区文件夹不存在或已被删除</div>
+      <div class="empty-state-text" style="font-size: 12px; margin-top: 4px;">
+        请在<a href="#" id="openOptionsLink" style="color: var(--amber); text-decoration: underline;">设置页面</a>重新设置
       </div>
     </div>
   `;
