@@ -333,6 +333,17 @@ input:checked + .toggle-slider:before {
   z-index: 10000;
 }
 
+.page-footer {
+  text-align: center;
+  padding-top: 8px;
+  color: var(--opt-text-hint);
+  font-size: 12px;
+}
+
+.page-footer:empty {
+  display: none;
+}
+
 .toast.show {
   transform: translateX(-50%) translateY(0);
   opacity: 1;

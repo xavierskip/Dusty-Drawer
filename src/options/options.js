@@ -3,9 +3,19 @@
 import { STORAGE_KEY } from '/constants.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
+  showExtensionVersion();
   await loadSettings();
   bindEvents();
 });
+
+// 显示扩展版本号
+function showExtensionVersion() {
+  const versionEl = document.getElementById('extensionVersion');
+  if (versionEl) {
+    const c = chrome.runtime.getManifest();
+    versionEl.textContent = `${c.name} v${c.version}`;
+  }
+}
 
 // 加载设置
 async function loadSettings() {
