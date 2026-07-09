@@ -136,18 +136,24 @@ a.bookmark-item:active {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
   min-width: 200px;
   max-width: 300px;
-  max-height: calc(100vh - 80px);
+  max-height: calc(100vh - 160px);
   overflow-y: auto;
-  overflow-x: hidden;
   z-index: 1000;
   padding: 4px 0;
 }
 
-/* 嵌套下拉菜单 - 统一向右弹出 */
+/* 嵌套下拉菜单 - 使用 fixed 定位避免被父级 overflow 裁切，位置由 JS 计算 */
 .dropdown > .bookmark-folder > .dropdown {
+  position: fixed;
   top: 0;
-  left: 100%;
-  margin-left: 2px;
+  left: 0;
+  margin: 0;
+}
+
+/* 顶层下拉菜单右边缘翻转 */
+.bookmark-folder.dropdown-left > .dropdown {
+  left: auto;
+  right: 0;
 }
 
 .bookmark-folder:hover > .dropdown {

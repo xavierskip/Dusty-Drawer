@@ -76,6 +76,53 @@ function renderBookmarkBar(bookmarks) {
   bookmarks.forEach(bookmark => {
     container.appendChild(createBookmarkBarItem(bookmark));
   });
+
+  // 绑定下拉菜单方向自适应
+  container.querySelectorAll('.bookmark-folder').forEach(folder => {
+    folder.addEventListener('mouseenter', () => adjustDropdownDirection(folder));
+  });
+}
+
+// 根据视口右边缘调整下拉菜单展开方向，并对嵌套菜单使用 fixed 定位
+function adjustDropdownDirection(folder) {
+  const dropdown = folder.querySelector(':scope > .dropdown');
+  if (!dropdown) return;
+
+  folder.classList.remove('dropdown-left');
+
+  const rect = folder.getBoundingClientRect();
+  const dropdownWidth = 300; // 与 CSS 中 .dropdown 的 max-width 一致
+  const viewportWidth = window.innerWidth;
+  const isNested = folder.closest('.dropdown') !== null;
+
+  if (isNested) {
+    // 嵌套下拉菜单使用 fixed 定位，避免被父级 overflow 裁切
+    dropdown.style.position = 'fixed';
+    dropdown.style.top = `${rect.top}px`;
+    dropdown.style.margin = '0';
+
+    if (rect.right + dropdownWidth > viewportWidth) {
+      // 向右超出视口，改向左弹出
+      dropdown.style.left = 'auto';
+      dropdown.style.right = `${viewportWidth - rect.left + 2}px`;
+    } else {
+      // 向右弹出
+      dropdown.style.left = `${rect.right + 2}px`;
+      dropdown.style.right = 'auto';
+    }
+  } else {
+    // 顶层下拉菜单恢复默认 absolute 定位
+    dropdown.style.position = '';
+    dropdown.style.top = '';
+    dropdown.style.left = '';
+    dropdown.style.right = '';
+    dropdown.style.margin = '';
+
+    // 顶层下拉菜单默认向下左对齐，超出则右对齐
+    if (rect.left + dropdownWidth > viewportWidth) {
+      folder.classList.add('dropdown-left');
+    }
+  }
 }
 
 function createBookmarkBarItem(bookmark) {
