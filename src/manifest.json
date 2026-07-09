@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Dusty Drawer",
   "version": "0.3.1",
-  "description": "保存窗口标签页为书签，并在新标签页中管理工作区书签",
+  "description": "保存窗口标签页为书签，并在新标签页中管理这些书签",
   "permissions": [
     "bookmarks",
     "tabs",
@@ -12,16 +12,11 @@
     "windows",
     "tabGroups"
   ],
-  "host_permissions": [
-    "<all_urls>"
-  ],
   "action": {
     "default_popup": "popup/popup.html",
-    "default_icon": {
+    "default_icon": {              
       "16": "icons/icon16.png",
-      "32": "icons/icon32.png",
-      "48": "icons/icon64.png",
-      "128": "icons/icon128.png"
+      "32": "icons/icon32.png"
     }
   },
   "background": {
@@ -35,7 +30,7 @@
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
-    "48": "icons/icon64.png",
+    "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   }
 }
