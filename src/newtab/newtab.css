@@ -30,7 +30,7 @@ body {
   display: flex;
   flex-direction: column;
   /* background: radial-gradient(circle, rgb(131 128 122 / 10%) 1px, transparent 2px) 0px 0px / 30px 40px, var(--bg); */
-  background: linear-gradient(0deg,  var(--bg1) 25%, transparent 26%), linear-gradient(270deg, var(--bg1) 25%, transparent 26%), linear-gradient(180deg, #1d2026 25%, transparent 26%), linear-gradient(90deg, #232526 25%, transparent 26%);
+  background: linear-gradient(0deg, var(--bg1) 25%, transparent 26%), linear-gradient(270deg, var(--bg1) 25%, transparent 26%), linear-gradient(180deg, #1a1c21 25%, transparent 26%), linear-gradient(90deg, #181a1b 25%, transparent 26%);
   background-size: 1em 1em;
   background-color: var(--bg1);
 }
