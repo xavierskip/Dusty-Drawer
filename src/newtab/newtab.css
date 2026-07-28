@@ -88,7 +88,7 @@ body {
   color: var(--amber);
 }
 
-a.bookmark-item:active {
+a.bookmark-item:active, .bookmark-folder:active {
     position: relative;
     top: 1px;
 }
