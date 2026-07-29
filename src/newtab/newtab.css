@@ -84,7 +84,7 @@ body {
 .bookmark-item:hover {
   background: var(--surface2);
 }
-.bookmark-item>.title:hover{
+.bookmark-item:hover > .title{
   color: var(--amber);
 }
 
