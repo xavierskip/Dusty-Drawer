@@ -78,18 +78,11 @@ chrome.bookmarks.onRemoved.addListener(() => {
 // 保存当前窗口的标签页到工作区（使用默认名称）
 async function saveCurrentWindowTabs(customName = null) {
   try {
-    // 获取当前窗口
-    const currentWindow = await chrome.windows.getCurrent({ populate: true });
-
-    // 过滤掉新标签页扩展自身的页面
-    const tabsToSave = currentWindow.tabs.filter(tab => {
-      return !tab.url.startsWith('chrome-extension://') &&
-             !tab.url.startsWith('chrome://newtab');
-    });
+    // 获取当前窗口中需要保存的标签页
+    const tabsToSave = await getTabsToSave();
 
     if (tabsToSave.length === 0) {
-      console.log('没有可保存的标签页');
-      return;
+      throw new Error('没有可保存的标签页');
     }
 
     // 获取已配置的工作区文件夹
@@ -119,12 +112,31 @@ async function saveCurrentWindowTabs(customName = null) {
     await Promise.all(bookmarkPromises);
 
     // 关闭当前窗口
+    const currentWindow = await chrome.windows.getCurrent();
     await chrome.windows.remove(currentWindow.id);
 
     console.log(`已保存 ${tabsToSave.length} 个标签页到工作区`);
   } catch (error) {
     console.error('保存标签页失败:', error);
+    throw error;
   }
+}
+
+// 获取当前窗口中需要保存的标签页
+async function getTabsToSave() {
+  const currentWindow = await chrome.windows.getCurrent({ populate: true });
+
+  // 过滤掉扩展自身页面和 chrome 内部页面
+  return currentWindow.tabs.filter(tab => {
+    return !tab.url.startsWith('chrome-extension://') &&
+           !tab.url.startsWith('chrome://newtab');
+  });
+}
+
+// 获取当前窗口可保存标签页数量
+async function getCurrentWindowTabCount() {
+  const tabsToSave = await getTabsToSave();
+  return tabsToSave.length;
 }
 
 // 获取默认文件夹名称（当前时间）
@@ -193,6 +205,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'getWorkspaceBookmarks') {
     getWorkspaceBookmarks().then((bookmarks) => {
       sendResponse({ success: true, bookmarks });
+    }).catch((error) => {
+      sendResponse({ success: false, error: error.message });
+    });
+    return true;
+  }
+
+  if (request.action === 'getCurrentWindowTabCount') {
+    getCurrentWindowTabCount().then((count) => {
+      sendResponse({ success: true, count });
     }).catch((error) => {
       sendResponse({ success: false, error: error.message });
     });

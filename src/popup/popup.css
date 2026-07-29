@@ -59,6 +59,38 @@ h2 {
   border-color: #1a73e8;
 }
 
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.section-header h2 {
+  margin-bottom: 0;
+}
+
+/* 高速公路路牌风格的标签页数量徽章 */
+.tab-badge {
+  display: inline-block;
+  min-width: 34px;
+  padding: 2px 8px;
+  background: #137333;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+  border-radius: 4px;
+  border: 2px solid #0d5a26;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.tab-badge.empty {
+  background: #e8eaed;
+  color: #5f6368;
+  border-color: #dadce0;
+}
+
 button {
   display: flex;
   align-items: center;

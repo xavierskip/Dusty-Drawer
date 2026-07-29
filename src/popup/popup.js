@@ -12,6 +12,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 获取统计信息
   await loadStats();
 
+  // 显示当前窗口可保存标签页数量
+  await loadTabBadge();
+
   // 绑定保存按钮
   document.getElementById('saveBtn').addEventListener('click', saveTabs);
 
@@ -65,6 +68,29 @@ async function loadStats() {
     }
   } catch (error) {
     console.error('获取统计信息失败:', error);
+  }
+}
+
+// 加载当前窗口可保存的标签页数量（从 background 获取，避免重复过滤逻辑）
+async function loadTabBadge() {
+  const badge = document.getElementById('tabBadge');
+  try {
+    const response = await chrome.runtime.sendMessage({ action: 'getCurrentWindowTabCount' });
+    if (response.success) {
+      badge.textContent = response.count;
+      if (response.count === 0) {
+        badge.classList.add('empty');
+      } else {
+        badge.classList.remove('empty');
+      }
+    } else {
+      badge.textContent = '!';
+      badge.classList.add('empty');
+    }
+  } catch (error) {
+    console.error('获取标签页数量失败:', error);
+    badge.textContent = '!';
+    badge.classList.add('empty');
   }
 }
 
