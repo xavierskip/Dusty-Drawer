@@ -458,7 +458,8 @@ function escapeHtml(text) {
 
 function extractDomain(url) {
   try {
-    return new URL(url).hostname;
+    const parsed = new URL(url);
+    return parsed.hostname || parsed.protocol;
   } catch {
     return '';
   }
