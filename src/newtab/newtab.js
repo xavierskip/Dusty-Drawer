@@ -195,7 +195,7 @@ function createBookmarkBarItem(bookmark) {
     link.appendChild(titleEle);
     link.addEventListener('click', (e) => {
       e.preventDefault();
-      currentTabUpdate(bookmark.url);
+      currentTabUpdate(bookmark.url, link);
     });
     return link;
   }
@@ -441,7 +441,7 @@ function renderBookmarks(folders) {
     card.querySelectorAll('.bookmark-item-card').forEach(item => {
       item.addEventListener('click', (e) => {
         e.stopPropagation();
-        currentTabUpdate(item.dataset.url);
+        currentTabUpdate(item.dataset.url, item);
       });
     });
 
@@ -493,7 +493,12 @@ function getFaviconEle(classname, url, title) {
   return img;
 }
 
-async function currentTabUpdate(url){
+async function currentTabUpdate(url, element = null){
+  if (url.startsWith('javascript:')) {
+    // JavaScript URL 无法通过扩展 API 在当前标签页执行，给点击元素一个抖动提示
+    if (element) shakeElement(element);
+    return;
+  }
   if (url.startsWith('data:')) {// data URL 只能在新标签页中打开
     chrome.tabs.create({ url: url });
     return;
@@ -504,6 +509,13 @@ async function currentTabUpdate(url){
   const tab = await chrome.tabs.getCurrent();
   chrome.tabs.update(tab.id, { url:url });
   return;
+}
+
+function shakeElement(element) {
+  element.classList.add('shake');
+  element.addEventListener('animationend', () => {
+    element.classList.remove('shake');
+  }, { once: true });
 }
 
 // 刷新窗口和标签页的显示
