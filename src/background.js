@@ -45,7 +45,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       chrome.runtime.openOptionsPage();
       return;
     }
-    saveCurrentWindowTabs();
+    saveWindowTabs(tab.windowId);
   }
 });
 
@@ -75,11 +75,15 @@ chrome.bookmarks.onRemoved.addListener(() => {
   updateContextMenuTitle();
 });
 
-// 保存当前窗口的标签页到工作区（使用默认名称）
-async function saveCurrentWindowTabs(customName = null) {
+// 保存指定窗口的标签页到工作区（使用默认名称）
+async function saveWindowTabs(windowId, customName = null) {
+  if (windowId == null) {
+    throw new Error('缺少窗口 ID');
+  }
+
   try {
-    // 获取当前窗口中需要保存的标签页
-    const tabsToSave = await getTabsToSave();
+    // 获取指定窗口中需要保存的标签页
+    const tabsToSave = await getTabsToSave(windowId);
 
     if (tabsToSave.length === 0) {
       throw new Error('没有可保存的标签页');
@@ -111,9 +115,8 @@ async function saveCurrentWindowTabs(customName = null) {
 
     await Promise.all(bookmarkPromises);
 
-    // 关闭当前窗口
-    const currentWindow = await chrome.windows.getCurrent();
-    await chrome.windows.remove(currentWindow.id);
+    // 关闭指定窗口
+    await chrome.windows.remove(windowId);
 
     console.log(`已保存 ${tabsToSave.length} 个标签页到工作区`);
   } catch (error) {
@@ -122,20 +125,22 @@ async function saveCurrentWindowTabs(customName = null) {
   }
 }
 
-// 获取当前窗口中需要保存的标签页
-async function getTabsToSave() {
-  const currentWindow = await chrome.windows.getCurrent({ populate: true });
+// 获取指定窗口中需要保存的标签页
+async function getTabsToSave(windowId) {
+  const targetWindow = windowId != null
+    ? await chrome.windows.get(windowId, { populate: true })
+    : await chrome.windows.getLastFocused({ populate: true });
 
-  // 过滤掉扩展自身页面和 chrome 内部页面
-  return currentWindow.tabs.filter(tab => {
-    return !tab.url.startsWith('chrome-extension://') &&
+  // 过滤掉扩展自身页面
+  return targetWindow.tabs.filter(tab => {
+    return !tab.url.startsWith('javascript:') &&
            !tab.url.startsWith('chrome://newtab');
   });
 }
 
-// 获取当前窗口可保存标签页数量
-async function getCurrentWindowTabCount() {
-  const tabsToSave = await getTabsToSave();
+// 获取指定窗口可保存标签页数量
+async function getWindowTabCount(windowId) {
+  const tabsToSave = await getTabsToSave(windowId);
   return tabsToSave.length;
 }
 
@@ -194,7 +199,7 @@ async function getWorkspaceFolder() {
 // 处理来自 popup 和 newtab 的消息
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'saveTabs') {
-    saveCurrentWindowTabs(request.folderName).then(() => {
+    saveWindowTabs(request.windowId, request.folderName).then(() => {
       sendResponse({ success: true });
     }).catch((error) => {
       sendResponse({ success: false, error: error.message });
@@ -212,7 +217,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 
   if (request.action === 'getCurrentWindowTabCount') {
-    getCurrentWindowTabCount().then((count) => {
+    getWindowTabCount(request.windowId).then((count) => {
       sendResponse({ success: true, count });
     }).catch((error) => {
       sendResponse({ success: false, error: error.message });

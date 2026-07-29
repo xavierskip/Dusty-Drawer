@@ -75,7 +75,11 @@ async function loadStats() {
 async function loadTabBadge() {
   const badge = document.getElementById('tabBadge');
   try {
-    const response = await chrome.runtime.sendMessage({ action: 'getCurrentWindowTabCount' });
+    const currentWindow = await chrome.windows.getCurrent();
+    const response = await chrome.runtime.sendMessage({
+      action: 'getCurrentWindowTabCount',
+      windowId: currentWindow.id
+    });
     if (response.success) {
       badge.textContent = response.count;
       if (response.count === 0) {
@@ -97,6 +101,7 @@ async function loadTabBadge() {
 // 保存标签页
 async function saveTabs() {
   const folderName = document.getElementById('folderName').value.trim() || null;
+  const currentWindow = await chrome.windows.getCurrent();
   const saveBtn = document.getElementById('saveBtn');
 
   saveBtn.disabled = true;
@@ -105,7 +110,8 @@ async function saveTabs() {
   try {
     const response = await chrome.runtime.sendMessage({
       action: 'saveTabs',
-      folderName: folderName
+      folderName: folderName,
+      windowId: currentWindow.id
     });
 
     if (response.success) {
