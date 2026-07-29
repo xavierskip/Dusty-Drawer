@@ -236,7 +236,7 @@ a.bookmark-item:active, .bookmark-folder:active {
   gap: 24px;
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1000px) {
   .content {
     grid-template-columns: 1fr;
   }
