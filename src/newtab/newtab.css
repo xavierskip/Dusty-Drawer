@@ -489,10 +489,10 @@ a.bookmark-item:active, .bookmark-folder:active {
 
 .tab-favicon,
 .bookmark-favicon {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
-  border-radius: 3px;
+  border-radius: 50%;
   background-color: var(--favicon);
   padding: 2px;
 }
