@@ -75,8 +75,10 @@ h2 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 34px;
-  padding: 10px 10px;
+  flex-direction: column;
+  width: 54px;
+  height: 54px;
+  padding: 4px;
   background-color: #0F6E56;      /* 路牌绿 */
   border-radius: 4px;
   /*border: 1px solid #ffffff;       /* 外白边 */
@@ -85,8 +87,24 @@ h2 {
   color: #ffffff;
   font-family: Arial, sans-serif;
   font-weight: 700;
-  font-size: 32px;
+  font-size: 52px;
   line-height: 1;
+}
+
+.tab-badge.size-2 { font-size: 40px; }
+
+.tab-badge.warning {
+  background-color: #d93025;
+  box-shadow: 0 0 0 2px #d93025,
+              inset 0 0 0 2px rgba(255,255,255,0.5);
+  font-size: 36px;
+}
+
+.tab-badge.warning::after {
+  content: '...';
+  font-size: 20px;
+  vertical-align: sub;
+  margin-top: -13px;
 }
 
 .tab-badge.empty {

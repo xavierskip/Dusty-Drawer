@@ -81,11 +81,19 @@ async function loadTabBadge() {
       windowId: currentWindow.id
     });
     if (response.success) {
-      badge.textContent = response.count;
-      if (response.count === 0) {
-        badge.classList.add('empty');
-      } else {
+      const count = response.count;
+      if (count > 99) {
+        badge.textContent = '99';
+        badge.classList.add('warning');
         badge.classList.remove('empty');
+      } else {
+        badge.textContent = count;
+        setBadgeFontSize(badge, count);
+        if (count === 0) {
+          badge.classList.add('empty');
+        } else {
+          badge.classList.remove('empty');
+        }
       }
     } else {
       badge.textContent = '!';
@@ -95,6 +103,15 @@ async function loadTabBadge() {
     console.error('获取标签页数量失败:', error);
     badge.textContent = '!';
     badge.classList.add('empty');
+  }
+}
+
+// 根据标签页数量位数调整徽章字号，保证数字不溢出固定大小的徽章
+function setBadgeFontSize(badge, count) {
+  const digits = String(count).length;
+  badge.classList.remove('size-2', 'warning');
+  if (digits >= 2) {
+    badge.classList.add('size-2');
   }
 }
 
