@@ -10,6 +10,7 @@
   --teal:     #4fb0a8;
   --red:      #e05c5c;
   --yellow:   #ffc745;
+  --green:    #4ebc63;
   --favicon:  #e8e8e8;
   --mono: "JetBrains Mono","IBM Plex Mono","SFMono-Regular",Menlo,Consolas,monospace;
   --sans: "Inter",-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
@@ -332,11 +333,12 @@ a.bookmark-item:active, .bookmark-folder:active {
   min-width: 20px;
   height: 20px;
   padding: 0 6px;
-  background: #238636;
+  background: var(--green);
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
-  color: #fff;
+  color: var(--favicon);
+  text-shadow: 1px 1px 0px #634607;
   box-shadow: inset 0 -.07em #0000006b;
 }
 
@@ -432,10 +434,11 @@ a.bookmark-item:active, .bookmark-folder:active {
 .window-badge {
   font-size: 14px;
   padding: 3px 6px 5px 6px;
-  background: #238636;
-  color: #fff;
+  background: var(--green);
+  color: var(--favicon);
   border-radius: 4px;
   font-weight: 500;
+  text-shadow: 1px 1px 0px #634607;
   box-shadow: inset 0 -.06em #0000006b;
 }
 
