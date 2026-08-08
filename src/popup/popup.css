@@ -111,6 +111,7 @@ h2 {
   background: #e8eaed;
   color: #5f6368;
   border-color: #dadce0;
+  box-shadow: none;
 }
 
 button {
