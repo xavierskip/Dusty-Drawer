@@ -46,7 +46,7 @@ async function loadSettings() {
   // 加载开关状态
   document.getElementById('hideBookmarkBar').checked = settings.hideBookmarkBar === true;
   document.getElementById('wrapTitleText').checked = settings.wrapTitleText === true;
-  document.getElementById('openAsTabGroup').checked = settings.openAsTabGroup === true;
+  document.getElementById('openAsTabGroup').checked = settings.openAsTabGroup === false;
   document.getElementById('disableOpenAnimation').checked = settings.disableOpenAnimation === true;
 }
 
@@ -92,13 +92,13 @@ function bindEvents() {
     showToast(e.target.checked ? '已开启标题自动换行' : '已关闭标题自动换行', 'success');
   });
 
-  // 以标签组形式打开开关
+  // 不以标签组形式打开开关
   document.getElementById('openAsTabGroup').addEventListener('change', async (e) => {
     const config = await chrome.storage.sync.get([STORAGE_KEY]);
     const settings = config[STORAGE_KEY] || {};
-    settings.openAsTabGroup = e.target.checked;
+    settings.openAsTabGroup = e.target.checked ? false : true;
     await chrome.storage.sync.set({ [STORAGE_KEY]: settings });
-    showToast(e.target.checked ? '已开启以标签组形式打开' : '已关闭以标签组形式打开', 'success');
+    showToast(e.target.checked ? '已设置不以标签组形式打开' : '已恢复以标签组形式打开', 'success');
   });
 
   // 关闭打开单个链接时的页面动画效果开关

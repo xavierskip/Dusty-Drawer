@@ -6,190 +6,224 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 13px;
   color: #333;
   background: #f5f5f5;
 }
 
-.container {
-  width: 320px;
-  padding: 16px;
-}
-
-h2 {
-  font-size: 13px;
-  font-weight: 600;
-  margin-bottom: 12px;
-  color: #5f6368;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.section {
+.popup {
+  width: 420px;
+  height: 600px;
+  display: flex;
+  flex-direction: column;
   background: #fff;
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.input-group {
-  margin-bottom: 12px;
+/* 顶部提示 */
+.notice {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  font-size: 11px;
+  color: #888;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e8eaed;
+  text-align: center;
 }
 
-.input-group label {
-  display: block;
-  font-size: 12px;
-  color: #5f6368;
-  margin-bottom: 4px;
+/* 标签列表容器 */
+.tab-list {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
-.input-group input {
+.tab-list-items {
+  list-style: none;
+}
+
+/* 单个标签项 */
+.tab-item {
+  display: flex;
+  align-items: center;
+  height: 52px;
+  padding: 0px 12px 0px 0;
+  gap: 0;
+  cursor: default;
+}
+
+.tab-item:hover {
+  background: #f1f3f4;
+}
+
+/* 分组标题行 */
+.group-header {
+  display: flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 12px;
+  gap: 8px;
+  cursor: default;
+  background: var(--group-bg, transparent);
+  border-radius: 4px;
+}
+
+.group-color-dot {
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 7px solid var(--group-color, transparent);
+  flex-shrink: 0;
+}
+
+.group-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--group-color, #5f6368);
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 分组颜色指示条 */
+.tab-group-indicator {
+  width: 4px;
+  align-self: stretch;
+  flex-shrink: 0;
+  margin-right: 10px;
+}
+
+.tab-favicon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  object-fit: contain;
+  margin-right: 10px;
+}
+
+.tab-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+
+.tab-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #202124;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.tab-url {
+  font-size: 11px;
+  color: #80868b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+/* 空状态 */
+.empty-state {
+  padding: 40px 16px;
+  text-align: center;
+  color: #80868b;
+  font-size: 13px;
+}
+
+/* 底部固定栏 */
+.footer {
+  flex-shrink: 0;
+  padding: 12px;
+  background: #fff;
+  border-top: 1px solid #e8eaed;
+}
+
+.folder-name-row {
+  margin-bottom: 8px;
+}
+
+.folder-name-row input {
   width: 100%;
-  padding: 8px 12px;
+  padding: 6px 10px;
   border: 1px solid #dadce0;
   border-radius: 4px;
-  font-size: 14px;
-  transition: border-color 0.2s;
+  font-size: 13px;
 }
 
-.input-group input:focus {
+.folder-name-row input:focus {
   outline: none;
   border-color: #1a73e8;
 }
 
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.section-header h2 {
-  margin-bottom: 0;
-}
-
-/* 高速公路路牌风格的标签页数量徽章 */
-.tab-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  width: 54px;
-  height: 54px;
-  padding: 4px;
-  background-color: #0F6E56;      /* 路牌绿 */
-  border-radius: 4px;
-  /*border: 1px solid #ffffff;       /* 外白边 */
-  box-shadow: 0 0 0 2px #0F6E56,   /* 白边外再描一圈绿色，视觉上更像路牌 */
-              inset 0 0 0 2px rgba(255,255,255,0.5); /* 内层细白线 */
-  color: #ffffff;
-  font-family: Arial, sans-serif;
-  font-weight: 700;
-  font-size: 52px;
-  line-height: 1;
-}
-
-.tab-badge.size-2 { font-size: 40px; }
-
-.tab-badge.warning {
-  background-color: #d93025;
-  box-shadow: 0 0 0 2px #d93025,
-              inset 0 0 0 2px rgba(255,255,255,0.5);
-  font-size: 36px;
-}
-
-.tab-badge.warning::after {
-  content: '...';
-  font-size: 20px;
-  vertical-align: sub;
-  margin-top: -13px;
-}
-
-.tab-badge.empty {
-  background: #e8eaed;
-  color: #5f6368;
-  border-color: #dadce0;
-  box-shadow: none;
-}
-
-button {
+.snapshot-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   width: 100%;
   padding: 10px 16px;
   border: none;
   border-radius: 4px;
+  background: #1a73e8;
+  color: #fff;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.2s;
 }
 
-.primary-btn {
-  background: #1a73e8;
-  color: white;
-}
-
-.primary-btn:hover {
+.snapshot-btn:hover {
   background: #1557b0;
 }
 
-.primary-btn:active {
+.snapshot-btn:active {
   background: #174ea6;
 }
 
-.secondary-btn {
-  background: #fff;
-  color: #5f6368;
-  border: 1px solid #dadce0;
-  margin-bottom: 8px;
-}
-
-.secondary-btn:last-child {
-  margin-bottom: 0;
-}
-
-.secondary-btn:hover {
-  background: #f8f9fa;
-  border-color: #bdc1c6;
+.snapshot-btn:disabled {
+  background: #9aa0a6;
+  cursor: not-allowed;
 }
 
 .icon {
   font-size: 16px;
 }
 
-.stats .stat-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.stat-item {
+/* 未设置工作区 */
+.setup-required {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 24px;
   text-align: center;
 }
 
-.stat-value {
-  display: block;
-  font-size: 24px;
-  font-weight: 600;
-  color: #1a73e8;
+.setup-required h2 {
+  font-size: 16px;
+  margin-bottom: 8px;
+  color: #202124;
 }
 
-.stat-label {
-  display: block;
-  font-size: 12px;
+.setup-required p {
+  font-size: 13px;
   color: #5f6368;
-  margin-top: 2px;
+  margin-bottom: 16px;
+  line-height: 1.5;
 }
 
-.actions {
-  padding: 12px 16px;
-}
-
+/* 状态提示 */
 .status {
   position: fixed;
   bottom: 0;

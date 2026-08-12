@@ -427,7 +427,7 @@ function renderBookmarks(folders) {
         await chrome.runtime.sendMessage({
           action: 'openBookmarkFolder',
           folderId: folderId,
-          asTabGroup: gSettings.openAsTabGroup === true
+          asTabGroup: gSettings.openAsTabGroup !== false
         });
         // 刷新显示
         await loadBookmarks();

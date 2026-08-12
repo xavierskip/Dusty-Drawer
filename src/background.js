@@ -80,8 +80,13 @@ async function saveWindowTabs(windowId, customName = null) {
   if (windowId == null) {
     throw new Error('缺少窗口 ID');
   }
-
+  // 获取已配置的工作区文件夹
+  const workspaceFolderId = await getWorkspaceFolder();
+  if (!workspaceFolderId) {
+    throw new Error('未设置工作区文件夹，请先在设置页面中选择或创建工作区');
+  }
   try {
+
     // 获取指定窗口中需要保存的标签页
     const tabsToSave = await getTabsToSave(windowId);
 
@@ -89,32 +94,44 @@ async function saveWindowTabs(windowId, customName = null) {
       throw new Error('没有可保存的标签页');
     }
 
-    // 获取已配置的工作区文件夹
-    const workspaceFolderId = await getWorkspaceFolder();
-    if (!workspaceFolderId) {
-      throw new Error('未设置工作区文件夹，请先在设置页面中选择或创建工作区');
+    // 按分组处理标签页
+    const groupedTabs = Object.groupBy(tabsToSave, tab => tab.groupId);
+
+    for (const [groupId, tabs] of Object.entries(groupedTabs)) {
+      const gid = Number(groupId);
+      let folderName;
+
+      // 如果标签页未分组，使用自定义名称或默认名称,否则使用标签组名称
+      if (gid === -1) {
+        folderName = customName || getDefaultFolderName();
+      } else {
+        const group = await chrome.tabGroups.get(gid);
+        folderName = group.title || `${group.color} 分组`;
+      }
+
+      // 在工作区下创建新文件夹
+      const newFolder = await chrome.bookmarks.create({
+        parentId: workspaceFolderId,
+        title: folderName
+      });
+
+      // 将标签页保存为书签
+      const bookmarkPromises = tabs.map(tab =>
+        chrome.bookmarks.create({
+          parentId: newFolder.id,
+          title: tab.title,
+          url: tab.url
+        })
+      );
+
+      await Promise.all(bookmarkPromises);
+
+      // 将标签页移出标签组
+      if (gid !== -1) {
+        await chrome.tabs.ungroup(tabs.map(tab => tab.id));
+      };
     }
-
-    // 生成文件夹名称
-    const folderName = customName || getDefaultFolderName();
-
-    // 在工作区下创建新文件夹
-    const newFolder = await chrome.bookmarks.create({
-      parentId: workspaceFolderId,
-      title: folderName
-    });
-
-    // 将标签页保存为书签
-    const bookmarkPromises = tabsToSave.map(tab =>
-      chrome.bookmarks.create({
-        parentId: newFolder.id,
-        title: tab.title,
-        url: tab.url
-      })
-    );
-
-    await Promise.all(bookmarkPromises);
-
+    
     // 关闭指定窗口
     await chrome.windows.remove(windowId);
 
@@ -134,6 +151,7 @@ async function getTabsToSave(windowId) {
   // 过滤掉扩展自身页面
   return targetWindow.tabs.filter(tab => {
     return !tab.url.startsWith('javascript:') &&
+           !tab.url.startsWith('edge://newtab') &&
            !tab.url.startsWith('chrome://newtab');
   });
 }
@@ -142,6 +160,74 @@ async function getTabsToSave(windowId) {
 async function getWindowTabCount(windowId) {
   const tabsToSave = await getTabsToSave(windowId);
   return tabsToSave.length;
+}
+
+// 获取指定窗口的标签组预览（用于 popup 快照）
+async function getWindowTabGroupsPreview(windowId) {
+  const tabsToSave = await getTabsToSave(windowId);
+
+  if (tabsToSave.length === 0) {
+    return {
+      total: 0,
+      ungrouped: { count: 0, tabs: [] },
+      groups: [],
+      tabs: []
+    };
+  }
+
+  const groupedTabs = Object.groupBy(tabsToSave, tab => tab.groupId);
+  const groups = [];
+  const groupMeta = new Map();
+
+  for (const [groupId, tabs] of Object.entries(groupedTabs)) {
+    const gid = Number(groupId);
+    const tabInfos = tabs.map(tab => ({
+      id: tab.id,
+      title: tab.title,
+      url: tab.url,
+      favIconUrl: tab.favIconUrl
+    }));
+
+    if (gid === -1) {
+      continue;
+    }
+
+    const group = await chrome.tabGroups.get(gid);
+    const title = group.title || `${group.color} 分组`;
+    groups.push({
+      groupId: gid,
+      title,
+      color: group.color,
+      count: tabs.length,
+      tabs: tabInfos
+    });
+    groupMeta.set(gid, { color: group.color, title });
+  }
+
+  const ungroupedTabs = groupedTabs['-1']?.map(tab => ({
+    id: tab.id,
+    title: tab.title,
+    url: tab.url,
+    favIconUrl: tab.favIconUrl
+  })) || [];
+
+  // 按窗口标签页原始顺序排列，并附加分组颜色和标题信息
+  const orderedTabs = tabsToSave.map(tab => ({
+    id: tab.id,
+    title: tab.title,
+    url: tab.url,
+    favIconUrl: tab.favIconUrl,
+    groupId: tab.groupId,
+    groupColor: tab.groupId !== -1 ? (groupMeta.get(tab.groupId)?.color || null) : null,
+    groupTitle: tab.groupId !== -1 ? (groupMeta.get(tab.groupId)?.title || null) : null
+  }));
+
+  return {
+    total: tabsToSave.length,
+    ungrouped: { count: ungroupedTabs.length, tabs: ungroupedTabs },
+    groups,
+    tabs: orderedTabs
+  };
 }
 
 // 获取默认文件夹名称（当前时间）
@@ -219,6 +305,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'getCurrentWindowTabCount') {
     getWindowTabCount(request.windowId).then((count) => {
       sendResponse({ success: true, count });
+    }).catch((error) => {
+      sendResponse({ success: false, error: error.message });
+    });
+    return true;
+  }
+
+  if (request.action === 'getWindowTabGroupsPreview') {
+    getWindowTabGroupsPreview(request.windowId).then((preview) => {
+      sendResponse({ success: true, ...preview });
     }).catch((error) => {
       sendResponse({ success: false, error: error.message });
     });
@@ -335,7 +430,7 @@ async function activateTab(windowId, tabId) {
 }
 
 // 打开书签文件夹中的所有书签
-async function openBookmarkFolder(folderId, asTabGroup = false) {
+async function openBookmarkFolder(folderId, asTabGroup = true) {
   const bookmarks = await chrome.bookmarks.getChildren(folderId);
   const urls = bookmarks
     .filter(b => b.url)

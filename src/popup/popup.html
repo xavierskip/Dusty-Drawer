@@ -7,38 +7,20 @@
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-  <div class="container">
-    <div class="section">
-      <div class="section-header">
-        <h2>保存当前窗口的标签页</h2>
-        <span class="tab-badge" id="tabBadge">-</span>
+  <div class="popup">
+    <div class="notice">新标签页等页面不属于快照部分</div>
+    <div class="tab-list" id="tabList"></div>
+    <div class="footer">
+      <div class="folder-name-row" id="folderNameRow">
+        <input type="text" id="folderName" placeholder="未分组文件夹名称（留空使用时间）">
       </div>
-      <div class="input-group">
-        <label for="folderName">文件夹名称（可选）</label>
-        <input type="text" id="folderName" placeholder="留空则使用当前时间">
-      </div>
-      <button id="saveBtn" class="primary-btn">
-        <span class="icon">💾</span>
-        保存并关闭窗口
+      <button id="saveBtn" class="snapshot-btn">
+        <span class="icon">📸</span>
+        快照：保存并关闭窗口
       </button>
     </div>
-
-    <div class="section stats">
-      <h2>抽屉区统计</h2>
-      <div class="stat-grid">
-        <div class="stat-item">
-          <span class="stat-value" id="folderCount">-</span>
-          <span class="stat-label">文件夹</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-value" id="bookmarkCount">-</span>
-          <span class="stat-label">书签</span>
-        </div>
-      </div>
-    </div>
-
-    <div id="status" class="status"></div>
   </div>
+  <div id="status" class="status"></div>
 
   <script type="module" src="popup.js"></script>
 </body>
