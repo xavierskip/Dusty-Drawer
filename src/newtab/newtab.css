@@ -426,9 +426,16 @@ a.bookmark-item:active, .bookmark-folder:active {
 
 .window-title span,
 .folder-title span {
+  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   margin: 2px;
+}
+
+/* 防止斜体字末尾被截断 */
+.folder-title span{ 
+  padding-right: 0.3em;
+  margin-right: -0.3em;
 }
 
 .window-badge {
