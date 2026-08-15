@@ -198,10 +198,11 @@ async function getWindowTabGroupsPreview(windowId) {
       groupId: gid,
       title,
       color: group.color,
+      collapsed: group.collapsed,
       count: tabs.length,
       tabs: tabInfos
     });
-    groupMeta.set(gid, { color: group.color, title });
+    groupMeta.set(gid, { color: group.color, title, collapsed: group.collapsed });
   }
 
   const ungroupedTabs = groupedTabs['-1']?.map(tab => ({

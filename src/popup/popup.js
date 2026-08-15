@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   await loadPreview();
   bindSaveButton();
+  initFootNote();
 });
 
 // 检查是否已配置工作区文件夹
@@ -35,7 +36,7 @@ function renderSetupRequired() {
       <div class="setup-required">
         <h2>未设置工作区</h2>
         <p>使用扩展前，请先在设置页面中选择或创建一个工作区文件夹。</p>
-        <button id="openOptions" class="snapshot-btn">打开设置</button>
+        <button id="openOptions" class="btn-primary">打开设置</button>
       </div>
     </div>
     <div id="status" class="status"></div>
@@ -50,6 +51,7 @@ function renderSetupRequired() {
 async function loadPreview() {
   const tabList = document.getElementById('tabList');
   const saveBtn = document.getElementById('saveBtn');
+  const totalCount = document.getElementById('totalCount');
 
   try {
     const currentWindow = await chrome.windows.getCurrent();
@@ -59,8 +61,11 @@ async function loadPreview() {
     });
 
     if (response.success) {
-      renderTabList(tabList, response.tabs);
+      renderTabList(tabList, response.tabs, response.groups || []);
       updateFolderNameRow(response.ungrouped.count);
+
+      const groupCount = response.groups ? response.groups.length : 0;
+      totalCount.textContent = `${response.total} TABS · ${groupCount} GROUPS`;
 
       if (response.total === 0) {
         saveBtn.disabled = true;
@@ -68,16 +73,18 @@ async function loadPreview() {
     } else {
       tabList.innerHTML = '<div class="empty-state">获取快照预览失败</div>';
       saveBtn.disabled = true;
+      totalCount.textContent = '0 TABS · 0 GROUPS';
     }
   } catch (error) {
     console.error('获取快照预览失败:', error);
     tabList.innerHTML = '<div class="empty-state">获取快照预览失败</div>';
     saveBtn.disabled = true;
+    totalCount.textContent = '0 TABS · 0 GROUPS';
   }
 }
 
-// 按窗口标签页顺序渲染标签列表，并在每个分组段前显示组名
-function renderTabList(container, tabs) {
+// 按窗口标签页顺序渲染分组列表
+function renderTabList(container, tabs, groups) {
   container.innerHTML = '';
 
   if (tabs.length === 0) {
@@ -85,56 +92,147 @@ function renderTabList(container, tabs) {
     return;
   }
 
-  const list = document.createElement('ul');
-  list.className = 'tab-list-items';
-
-  let lastGroupId = null;
+  // 统计每个分组的标签数量
+  const groupCounts = new Map();
   for (const tab of tabs) {
-    if (tab.groupId !== -1 && tab.groupId !== lastGroupId) {
-      list.appendChild(createGroupHeader(tab.groupTitle, tab.groupColor));
-    }
-    list.appendChild(createTabItem(tab));
-    lastGroupId = tab.groupId;
+    groupCounts.set(tab.groupId, (groupCounts.get(tab.groupId) || 0) + 1);
   }
 
-  container.appendChild(list);
+  const groupMap = new Map();
+  for (const group of groups) {
+    groupMap.set(group.groupId, group);
+  }
+
+  let lastGroupId = null;
+  let currentInner = null;
+
+  for (const tab of tabs) {
+    if (tab.groupId !== lastGroupId) {
+      if (tab.groupId === -1) {
+        // 未分组的标签直接列出，不显示分组标题
+        currentInner = null;
+      } else {
+        const group = groupMap.get(tab.groupId);
+        const title = group?.title || '未命名分组';
+        const color = group?.color;
+        const collapsed = group?.collapsed ?? false;
+        const count = groupCounts.get(tab.groupId) || 0;
+
+        const groupEl = createGroup(tab.groupId, title, color, count, collapsed);
+        container.appendChild(groupEl);
+        currentInner = groupEl.querySelector('.group-body-inner');
+      }
+      lastGroupId = tab.groupId;
+    }
+
+    const item = createTabItem(tab);
+    if (currentInner) {
+      currentInner.appendChild(item);
+    } else {
+      container.appendChild(item);
+    }
+  }
 }
 
-// 创建分组标题行
-function createGroupHeader(title, colorName) {
-  const header = document.createElement('li');
-  header.className = 'group-header';
+// 折叠箭头 SVG
+function chevronSVG() {
+  return `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M6 9l6 6 6-6"/></svg>`;
+}
+
+// 创建分组容器
+function createGroup(groupId, title, colorName, count, collapsed) {
+  const wrap = document.createElement('div');
+  wrap.className = 'group';
+  if (collapsed) {
+    wrap.classList.add('collapsed');
+  }
 
   const hex = colorName ? getGroupColorHex(colorName) : null;
   if (hex) {
-    header.style.setProperty('--group-bg', hex + '12');
-    header.style.setProperty('--group-color', hex);
+    wrap.style.setProperty('--group-color', hex);
+    wrap.style.setProperty('--group-color-faded', hexToRgba(hex, 0.25));
   }
 
+  const head = document.createElement('div');
+  head.className = 'group-head';
+  head.setAttribute('role', 'button');
+  head.setAttribute('tabindex', '0');
+  head.setAttribute('aria-expanded', String(!collapsed));
+
   const dot = document.createElement('span');
-  dot.className = 'group-color-dot';
+  dot.className = 'group-dot';
+  if (hex) {
+    dot.style.backgroundColor = hex;
+  }
 
   const name = document.createElement('span');
   name.className = 'group-name';
-  name.textContent = title || '未命名分组';
+  name.textContent = title;
 
-  header.appendChild(dot);
-  header.appendChild(name);
+  const countEl = document.createElement('span');
+  countEl.className = 'group-count';
+  countEl.textContent = count;
 
-  return header;
+  const chevron = document.createElement('span');
+  chevron.className = 'group-chevron';
+  chevron.innerHTML = chevronSVG();
+
+  head.appendChild(dot);
+  head.appendChild(name);
+  head.appendChild(countEl);
+  head.appendChild(chevron);
+
+  const toggle = async () => {
+    const willCollapse = !wrap.classList.contains('collapsed');
+
+    try {
+      await chrome.tabGroups.update(groupId, { collapsed: willCollapse });
+    } catch (error) {
+      console.error('同步标签组折叠状态失败:', error);
+    }
+
+    const isCollapsed = wrap.classList.toggle('collapsed');
+    head.setAttribute('aria-expanded', String(!isCollapsed));
+  };
+
+  head.addEventListener('click', toggle);
+  head.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggle();
+    }
+  });
+
+  const body = document.createElement('div');
+  body.className = 'group-body';
+
+  const inner = document.createElement('div');
+  inner.className = 'group-body-inner';
+  body.appendChild(inner);
+
+  wrap.appendChild(head);
+  wrap.appendChild(body);
+
+  return wrap;
+}
+
+// 将十六进制颜色转换为 rgba
+function hexToRgba(hex, alpha) {
+  const clean = hex.replace('#', '');
+  const bigint = parseInt(clean, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
 // 创建单个标签项
 function createTabItem(tab) {
-  const item = document.createElement('li');
-  item.className = 'tab-item';
-
-  const indicator = document.createElement('div');
-  indicator.className = 'tab-group-indicator';
-  indicator.style.backgroundColor = tab.groupColor ? getGroupColorHex(tab.groupColor) : 'transparent';
+  const item = document.createElement('div');
+  item.className = 'tab';
 
   const favicon = document.createElement('img');
-  favicon.className = 'tab-favicon';
+  favicon.className = 'favicon';
   favicon.src = getFaviconUrl(tab.url);
   favicon.alt = '';
   favicon.onerror = () => {
@@ -142,14 +240,16 @@ function createTabItem(tab) {
   };
 
   const info = document.createElement('div');
-  info.className = 'tab-info';
+  info.className = 'tab-text';
 
   const title = document.createElement('div');
   title.className = 'tab-title';
   title.textContent = tab.title || '无标题';
   title.title = tab.title || '无标题';
-  if (tab.groupColor) {
-    title.style.color = getGroupColorHex(tab.groupColor);
+
+  const titleColor = tab.groupColor ? getGroupColorHex(tab.groupColor) : null;
+  if (titleColor && titleColor !== 'transparent') {
+    title.style.color = titleColor;
   }
 
   const url = document.createElement('div');
@@ -159,7 +259,6 @@ function createTabItem(tab) {
 
   info.appendChild(title);
   info.appendChild(url);
-  item.appendChild(indicator);
   item.appendChild(favicon);
   item.appendChild(info);
 
@@ -216,6 +315,37 @@ function bindSaveButton() {
   });
 }
 
+// 初始化 foot-note 关闭状态
+async function initFootNote() {
+  const footNote = document.getElementById('footNote');
+  const closeBtn = document.getElementById('footNoteClose');
+  if (!footNote || !closeBtn) return;
+
+  try {
+    const result = await chrome.storage.sync.get([STORAGE_KEY]);
+    const settings = result[STORAGE_KEY] || {};
+    if (settings.popupFootNoteDismissed) {
+      footNote.classList.add('hidden');
+      return;
+    }
+  } catch (error) {
+    console.error('读取 foot-note 状态失败:', error);
+  }
+
+  closeBtn.addEventListener('click', async () => {
+    footNote.classList.add('hidden');
+    try {
+      const result = await chrome.storage.sync.get([STORAGE_KEY]);
+      const settings = result[STORAGE_KEY] || {};
+      await chrome.storage.sync.set({
+        [STORAGE_KEY]: { ...settings, popupFootNoteDismissed: true }
+      });
+    } catch (error) {
+      console.error('保存 foot-note 状态失败:', error);
+    }
+  });
+}
+
 // 保存标签页
 async function saveTabs() {
   const folderName = document.getElementById('folderName').value.trim() || null;
@@ -237,12 +367,12 @@ async function saveTabs() {
     } else {
       showStatus('保存失败: ' + response.error, 'error');
       saveBtn.disabled = false;
-      saveBtn.innerHTML = '<span class="icon">📸</span> 快照：保存并关闭窗口';
+      saveBtn.innerHTML = '<span class="icon">📸</span> 保存并关闭窗口';
     }
   } catch (error) {
     showStatus('保存失败: ' + error.message, 'error');
     saveBtn.disabled = false;
-    saveBtn.innerHTML = '<span class="icon">📸</span> 快照：保存并关闭窗口';
+    saveBtn.innerHTML = '<span class="icon">📸</span> 保存并关闭窗口';
   }
 }
 

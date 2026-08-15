@@ -8,15 +8,30 @@
 </head>
 <body>
   <div class="popup">
-    <div class="notice">新标签页等页面不属于快照部分</div>
+    <div class="side-head">
+      <h1>窗口标签页</h1>
+      <span class="total" id="totalCount">0 TABS · 0 GROUPS</span>
+    </div>
+
     <div class="tab-list" id="tabList"></div>
+
     <div class="footer">
-      <div class="folder-name-row" id="folderNameRow">
-        <input type="text" id="folderName" placeholder="未分组文件夹名称（留空使用时间）">
+      <div class="foot-note" id="footNote">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/></svg>
+        <span class="foot-note-text">新标签页页面不会纳入快照。</span>
+        <button class="foot-note-close" id="footNoteClose" aria-label="不再显示此提示" title="不再显示">×</button>
       </div>
-      <button id="saveBtn" class="snapshot-btn">
-        <span class="icon">📸</span>
-        快照：保存并关闭窗口
+      <div class="folder-name-row" id="folderNameRow">
+        <input type="text" id="folderName" placeholder="可选：未分组标签页名称（留空则使用当前时间）" maxlength="30">
+      </div>
+      <button id="saveBtn" class="btn-primary">
+        <span class="btn-text">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" class="btn-icon">
+            <path d="M4 8h3l2-3h6l2 3h3v11H4z"></path>
+            <circle cx="12" cy="13" r="3.2"></circle>
+          </svg>
+          <span>快照：保存并关闭窗口</span>
+        </span>
       </button>
     </div>
   </div>
