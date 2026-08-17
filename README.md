@@ -62,7 +62,13 @@ Dusty Drawer 把「待处理的书签」直接放在你每天要看无数次的�
 
 ## 开始使用
 
+本扩展不依赖任何前端框架。
+
 ### 安装
+
+在 [Chrome 应用商店](https://chromewebstore.google.com/detail/dusty-drawer/ckjhlfdcakdniccnkpfcclinehggbhcg) 中安装。
+
+或者本地以开发者模式加载。
 
 1. 打开 Chrome，访问 `chrome://extensions/`。
 2. 开启右上角「开发者模式」。
