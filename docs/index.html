@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dusty Drawer — 把攒了一窗口的标签页丢进抽屉</title>
+<meta name="description" content="Dusty Drawer 是一个 Chrome 扩展：临时书签 + 新标签页看板 + 一键打开并清理，专治「标签页攒了一窗口却不敢关」。">
+<link rel="icon" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#11151c;
+  --bg1:#0f1319;
+  --charcoal:#0d0d11;
+  --surface:#171c25;
+  --border:#2a313c;
+  --ink:#cac1ae;
+  --muted:#868c97;
+  --amber:#e8a33d;
+  --teal:#4fb0a8;
+  --cream:#f4f0ea;
+  --mono:"JetBrains Mono","SFMono-Regular",Menlo,Consolas,monospace;
+  --sans:"Inter Tight","Inter",-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--sans);
+  background:var(--bg);
+  color:var(--ink);
+  line-height:1.6;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:rgba(232,163,61,.35);color:var(--cream)}
+
+/* ---------- 噪点 ---------- */
+.grain{
+  position:fixed;inset:-50%;z-index:60;pointer-events:none;opacity:.05;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation:grain 7s steps(8) infinite;
+}
+@keyframes grain{
+  0%,100%{transform:translate(0,0)}12%{transform:translate(-2%,3%)}25%{transform:translate(3%,-2%)}
+  37%{transform:translate(-3%,-3%)}50%{transform:translate(2%,2%)}62%{transform:translate(-2%,1%)}
+  75%{transform:translate(3%,3%)}87%{transform:translate(-1%,-2%)}
+}
+
+/* ---------- 导航 ---------- */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 5vw;
+  background:linear-gradient(180deg,rgba(15,19,25,.85),rgba(15,19,25,0));
+  backdrop-filter:blur(2px);
+}
+.wordmark{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--cream)}
+.wordmark img{width:100px;height:100px}
+.wordmark b{font-weight:600;letter-spacing:.02em;font-size:15px}
+.nav-links{display:flex;gap:28px;align-items:center}
+.nav-links a{
+  color:var(--ink);text-decoration:none;font-family:var(--mono);
+  font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+  transition:color .25s;
+}
+.nav-links a:hover{color:var(--amber)}
+.nav-cta{
+  border:1px solid var(--border);border-radius:99px;padding:7px 16px !important;
+  background:rgba(23,28,37,.6);
+}
+.nav-cta:hover{border-color:var(--amber)}
+nav.on-light{background:linear-gradient(180deg,rgba(244,240,234,.92),rgba(244,240,234,0))}
+nav.on-light .wordmark{color:#0d0d11}
+nav.on-light .nav-links a{color:#3a362c}
+nav.on-light .nav-links a:hover{color:#83580c}
+nav.on-light .nav-cta{border-color:rgba(13,13,17,.35);background:rgba(255,255,255,.55)}
+@media(max-width:720px){.nav-links a:not(.nav-cta){display:none}}
+
+/* ---------- 通用 ---------- */
+.mono-label{
+  font-family:var(--mono);font-size:11px;letter-spacing:.34em;
+  text-transform:uppercase;color:var(--amber);display:block;margin-bottom:22px;
+}
+.wrap{max-width:1120px;margin:0 auto;padding:0 5vw;position:relative;z-index:2}
+section{position:relative}
+.px{will-change:transform}
+.reveal{opacity:0;transform:translateY(46px);transition:opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:none}
+
+/* ---------- Hero ---------- */
+.hero{height:100vh;min-height:640px;overflow:hidden;background:
+  radial-gradient(1200px 600px at 50% -10%,rgba(232,163,61,.07),transparent 60%),
+  linear-gradient(180deg,var(--bg1),var(--bg));
+}
+.dust-layer{position:absolute;inset:-12% 0;pointer-events:none}
+.dust{position:absolute;border-radius:50%;background:var(--ink);
+  animation:twinkle var(--dur) ease-in-out var(--delay) infinite;
+  box-shadow:0 0 4px rgba(202,193,174,.4);
+}
+.dust.amber{background:var(--amber);box-shadow:0 0 6px rgba(232,163,61,.6)}
+.dust.teal{background:var(--teal);box-shadow:0 0 6px rgba(79,176,168,.6)}
+@keyframes twinkle{
+  0%,100%{opacity:var(--o-min);transform:scale(1)}
+  50%{opacity:var(--o-max);transform:scale(1.25)}
+}
+.hero-inner{
+  position:relative;z-index:3;height:100%;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  text-align:center;padding:0 5vw;
+}
+.hero h1{
+  font-weight:800;letter-spacing:-.03em;line-height:.95;
+  font-size:clamp(56px,11vw,148px);color:var(--cream);
+}
+.hero h1 .dusty{color:var(--amber)}
+.hero h1 .drawer{
+  color:transparent;-webkit-text-stroke:2px var(--ink);
+}
+.hero .tagline{
+  margin-top:28px;font-size:clamp(16px,2vw,21px);color:var(--ink);
+  max-width:640px;font-weight:300;
+}
+.hero .tagline b{color:var(--teal);font-weight:600}
+.hero-badges{
+  margin-top:22px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;
+  font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--muted);
+}
+.hero-badges span{border:1px solid var(--border);border-radius:99px;padding:5px 14px;background:rgba(23,28,37,.5)}
+.hero-cta{margin-top:40px;display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+.btn{
+  font-family:var(--mono);font-size:13px;letter-spacing:.1em;text-decoration:none;
+  padding:14px 30px;border-radius:99px;transition:transform .3s,box-shadow .3s,background .3s;
+}
+.btn-primary{background:var(--amber);color:var(--bg);font-weight:600}
+.btn-primary:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(232,163,61,.3)}
+.btn-ghost{border:1px solid var(--border);color:var(--ink)}
+.btn-ghost:hover{border-color:var(--teal);color:var(--teal)}
+
+/* 漂浮标签卡片 */
+.tab-card{
+  position:absolute;z-index:1;
+  display:flex;align-items:center;gap:8px;
+  background:linear-gradient(158deg,#222228,#14171d);
+  border:1px solid var(--border);border-radius:10px;
+  padding:10px 14px;font-family:var(--mono);font-size:11px;color:var(--muted);
+  box-shadow:0 12px 34px rgba(0,0,0,.55),0 2px 6px rgba(0,0,0,.4);
+  white-space:nowrap;
+}
+.tab-card .dot{width:8px;height:8px;border-radius:50%;flex:none}
+.tab-card .close{margin-left:6px;color:var(--border)}
+.tab-float{animation:floaty 6s ease-in-out infinite}
+@keyframes floaty{0%,100%{transform:translateY(0) rotate(var(--tilt,0deg))}50%{transform:translateY(-14px) rotate(var(--tilt,0deg))}}
+
+/* 抽屉 */
+.drawer-wrap{position:absolute;bottom:4px;left:60%;transform:translateX(-50%);z-index:2;width:min(420px,72vw)}
+.drawer-body{
+  position:relative;height:110px;
+  background:linear-gradient(180deg,#1c2331,#141920);
+  border:1px solid var(--border);border-bottom:none;
+  border-radius:14px 14px 0 0;
+  box-shadow:0 -12px 40px rgba(0,0,0,.5);
+}
+.drawer-body::before{
+  content:"";position:absolute;inset:14px;border-radius:8px;
+  border:1px dashed rgba(134,140,151,.25);
+}
+.drawer-handle{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:74px;height:10px;border-radius:99px;background:var(--amber);
+  box-shadow:0 0 18px rgba(232,163,61,.45);
+}
+.drawer-tabs{position:absolute;bottom:96px;left:8%;right:8%;display:flex;flex-direction:column;gap:5px;align-items:center}
+.drawer-tabs i{
+  display:block;height:7px;border-radius:4px;background:var(--surface);
+  border:1px solid var(--border);
+}
+.drawer-tabs i:nth-child(1){width:52%}.drawer-tabs i:nth-child(2){width:68%;background:rgba(232,163,61,.25);border-color:rgba(232,163,61,.4)}
+.drawer-tabs i:nth-child(3){width:44%}.drawer-tabs i:nth-child(4){width:60%;background:rgba(79,176,168,.2);border-color:rgba(79,176,168,.35)}
+
+.scroll-hint{
+  position:absolute;bottom:26px;left:50%;transform:translateX(-50%);z-index:4;
+  font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:var(--muted);
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+}
+.scroll-hint::after{
+  content:"";width:1px;height:34px;background:linear-gradient(180deg,var(--amber),transparent);
+  animation:drip 1.8s ease-in-out infinite;
+}
+@keyframes drip{0%{transform:scaleY(0);transform-origin:top}55%{transform:scaleY(1);transform-origin:top}56%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+/* ---------- 问题 ---------- */
+.problem{padding:22vh 0 20vh;overflow:hidden}
+.big-ghost{
+  position:absolute;top:50%;left:0;width:100%;text-align:center;
+  font-size:clamp(120px,26vw,360px);font-weight:800;letter-spacing:.05em;
+  color:transparent;-webkit-text-stroke:1px rgba(134,140,151,.16);
+  white-space:nowrap;pointer-events:none;z-index:1;line-height:1;
+  user-select:none;
+}
+.problem h2{
+  font-size:clamp(30px,4.6vw,54px);font-weight:600;letter-spacing:-.02em;
+  color:var(--cream);line-height:1.25;max-width:760px;
+}
+.problem h2 em{font-style:normal;color:var(--amber)}
+.problem p{margin-top:26px;max-width:560px;color:var(--muted);font-size:17px}
+.problem p b{color:var(--ink);font-weight:600}
+</style>
+<style>
+/* ---------- 工作流（sticky 视差） ---------- */
+.flow{height:340vh;background:var(--charcoal)}
+.flow-stage{
+  position:sticky;top:0;height:100vh;overflow:hidden;
+  display:flex;align-items:center;
+}
+.flow-dust{position:absolute;inset:0;pointer-events:none;opacity:.6}
+.flow-grid{
+  display:grid;grid-template-columns:minmax(240px,1fr) 1.4fr;gap:6vw;
+  align-items:center;width:100%;
+}
+@media(max-width:860px){.flow-grid{grid-template-columns:1fr;gap:8vh}}
+.flow-left{position:relative}
+.flow-count{
+  font-family:var(--mono);font-size:12px;letter-spacing:.3em;color:var(--muted);
+  margin-bottom:18px;
+}
+.flow-title{
+  font-size:clamp(38px,5.4vw,72px);font-weight:800;letter-spacing:-.02em;
+  color:var(--cream);line-height:1.1;
+}
+.flow-title span{color:var(--amber)}
+.flow-bar{
+  margin-top:34px;height:2px;background:var(--border);border-radius:2px;
+  max-width:320px;position:relative;overflow:hidden;
+}
+.flow-bar i{position:absolute;inset:0;background:linear-gradient(90deg,var(--amber),var(--teal));transform-origin:left;transform:scaleX(0)}
+.flow-panels{position:relative;height:min(56vh,460px)}
+.flow-panel{
+  position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;
+  opacity:var(--reveal,0);
+  transform:translate3d(0,calc((1 - var(--reveal,0)) * 60px),0);
+  pointer-events:none;
+}
+.flow-panel .num{
+  font-family:var(--mono);font-size:12px;letter-spacing:.3em;color:var(--teal);margin-bottom:16px;
+}
+.flow-panel h3{font-size:clamp(26px,3.4vw,44px);font-weight:600;color:var(--cream);margin-bottom:18px;letter-spacing:-.01em}
+.flow-panel p{color:var(--muted);font-size:16px;max-width:460px}
+.flow-panel p b{color:var(--ink);font-weight:600}
+.flow-panel kbd{
+  font-family:var(--mono);font-size:12px;color:var(--amber);
+  border:1px solid rgba(232,163,61,.4);border-radius:6px;padding:2px 8px;
+}
+.flow-loop{
+  margin-top:30px;font-family:var(--mono);font-size:12px;letter-spacing:.12em;color:var(--muted);
+}
+.flow-loop b{color:var(--amber);font-weight:600}
+
+/* ---------- 功能 ---------- */
+.features{padding:18vh 0;background:var(--bg);overflow:hidden}
+.features h2{font-size:clamp(30px,4vw,48px);font-weight:600;color:var(--cream);letter-spacing:-.02em;max-width:640px}
+.feat-grid{margin-top:9vh;display:grid;grid-template-columns:1fr 1fr;gap:56px 6vw}
+@media(max-width:760px){.feat-grid{grid-template-columns:1fr}}
+.feat{position:relative}
+.feat .fnum{
+  font-family:var(--mono);font-size:64px;font-weight:600;line-height:1;
+  color:transparent;-webkit-text-stroke:1px var(--border);
+  display:block;margin-bottom:14px;
+}
+.feat h3{font-size:21px;font-weight:600;color:var(--cream);margin-bottom:10px}
+.feat h3 .accent{color:var(--amber)}
+.feat h3 .accent-t{color:var(--teal)}
+.feat p{color:var(--muted);font-size:15px;max-width:420px}
+.feat p b{color:var(--ink);font-weight:600}
+.feat-list{margin-top:12px;list-style:none;font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.04em}
+.feat-list li{padding:7px 0;border-top:1px dashed rgba(42,49,60,.9)}
+.feat-list li::before{content:"→ ";color:var(--teal)}
+
+/* ---------- 安装（浅色区） ---------- */
+.install{padding:16vh 0;background:var(--cream);overflow:hidden}
+.install .mono-label{color:#83580c}
+.install h2{font-size:clamp(30px,4vw,48px);font-weight:600;color:#0d0d11;letter-spacing:-.02em}
+.steps{margin-top:5vh;display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:1px solid rgba(13,13,17,.18)}
+@media(max-width:860px){.steps{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.steps{grid-template-columns:1fr}}
+.step{padding:30px 26px 34px;border-bottom:1px solid rgba(13,13,17,.18);border-right:1px solid rgba(13,13,17,.18);position:relative}
+.step:last-child{border-right:none}
+@media(max-width:860px){.step{border-right:none}}
+.step .snum{font-family:var(--mono);font-size:11px;letter-spacing:.3em;color:#83580c;display:block;margin-bottom:16px}
+.step h4{font-size:15px;font-weight:600;color:#0d0d11;margin-bottom:8px}
+.step p{font-size:13px;color:#55503f}
+.step code{font-family:var(--mono);font-size:12px;color:#28645f}
+.install-note{
+  margin-top:5vh;border:1px dashed rgba(131,88,12,.55);border-radius:12px;
+  padding:18px 24px;font-size:14px;color:#3a362c;max-width:680px;
+  background:rgba(232,163,61,.14);
+}
+.install-note b{color:#83580c}
+
+/* ---------- 应用商店卡片 ---------- */
+.store-card{
+  margin-top:6vh;display:flex;align-items:center;gap:22px;
+  max-width:560px;text-decoration:none;
+  background:linear-gradient(158deg,#1c2331,#141920);
+  border:1px solid rgba(232,163,61,.4);border-radius:16px;
+  padding:24px 28px;
+  box-shadow:0 12px 34px rgba(0,0,0,.45);
+  transition:transform .3s,box-shadow .3s,border-color .3s;
+}
+.store-card:hover{transform:translateY(-4px);border-color:var(--amber);box-shadow:0 18px 44px rgba(232,163,61,.18)}
+.store-tag{
+  font-family:var(--mono);font-size:10px;letter-spacing:.22em;color:var(--bg);
+  background:var(--amber);border-radius:99px;padding:5px 12px;flex:none;font-weight:600;
+}
+.store-main{display:flex;flex-direction:column;gap:3px;flex:1}
+.store-main b{color:var(--cream);font-size:17px;font-weight:600}
+.store-main small{color:var(--muted);font-size:13px}
+.store-arrow{font-size:22px;color:var(--amber)}
+
+/* ---------- 页脚 ---------- */
+footer{
+  padding:14vh 0 8vh;background:var(--bg1);text-align:center;position:relative;overflow:hidden;
+}
+footer .big{
+  font-size:clamp(40px,8vw,110px);font-weight:800;letter-spacing:-.03em;color:var(--cream);line-height:1;
+}
+footer .big span{color:transparent;-webkit-text-stroke:1.5px var(--ink)}
+footer p{margin-top:20px;color:var(--muted);font-size:14px}
+footer .foot-links{margin-top:36px;display:flex;gap:26px;justify-content:center;font-family:var(--mono);font-size:12px;letter-spacing:.14em}
+footer .foot-links a{color:var(--ink);text-decoration:none;text-transform:uppercase;transition:color .25s}
+footer .foot-links a:hover{color:var(--amber)}
+footer .copy{margin-top:60px;font-family:var(--mono);font-size:11px;color:#7d838d;letter-spacing:.1em;line-height:2}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none !important;transition:none !important}
+  .reveal{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<nav>
+  <a class="wordmark" href="#top"><img src="icon.png" alt="Dusty Drawer 图标"><b>Dusty Drawer</b></a>
+  <div class="nav-links">
+    <a href="#problem">问题</a>
+    <a href="#flow">工作流</a>
+    <a href="#features">功能</a>
+    <a href="#install">安装</a>
+    <a class="nav-cta" href="https://chromewebstore.google.com/detail/dusty-drawer/ckjhlfdcakdniccnkpfcclinehggbhcg" target="_blank" rel="noopener">安装扩展 ↗</a>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<header class="hero" id="top">
+  <div class="dust-layer" id="dust-far" data-speed="0.12"></div>
+  <div class="dust-layer" id="dust-mid" data-speed="0.28"></div>
+  <div class="dust-layer" id="dust-near" data-speed="0.5"></div>
+
+  <div class="px" data-speed="0.3" style="position:absolute;top:21%;left:7%;z-index:1">
+    <div class="tab-card tab-float" style="--tilt:-6deg"><i class="dot" style="background:var(--amber)"></i>调研报告 · 最终版_v3<i class="close">✕</i></div>
+  </div>
+  <div class="px" data-speed="0.55" style="position:absolute;top:28%;right:9%;z-index:1">
+    <div class="tab-card tab-float" style="--tilt:5deg;animation-delay:-2s"><i class="dot" style="background:var(--teal)"></i>如何关闭太多标签页？<i class="close">✕</i></div>
+  </div>
+  <div class="px" data-speed="0.22" style="position:absolute;bottom:32%;left:13%;z-index:1">
+    <div class="tab-card tab-float" style="--tilt:4deg;animation-delay:-4s"><i class="dot" style="background:#e05c5c"></i>待读：37 篇收藏文章<i class="close">✕</i></div>
+  </div>
+  <div class="px" data-speed="0.45" style="position:absolute;bottom:38%;right:14%;z-index:1">
+    <div class="tab-card tab-float" style="--tilt:-4deg;animation-delay:-1s"><i class="dot" style="background:#4ebc63"></i>文档 · 草稿<i class="close">✕</i></div>
+  </div>
+
+  <div class="hero-inner px" data-speed="0.18">
+    <span class="mono-label reveal">Chrome 扩展 · 临时书签看板</span>
+    <h1><span class="reveal" style="display:block;transition-delay:.08s"><span class="dusty">Dusty</span> <span class="drawer">Drawer</span></span></h1>
+    <p class="tagline reveal" style="transition-delay:.16s">把攒了一窗口的标签页丢进「抽屉」，在新标签页里盯着它们，<b>处理完就清空</b>。</p>
+    <div class="hero-badges reveal" style="transition-delay:.24s">
+      <span>Manifest V3</span><span>原生书签驱动</span><span>开源</span>
+    </div>
+    <div class="hero-cta reveal" style="transition-delay:.32s">
+      <a class="btn btn-primary" href="https://chromewebstore.google.com/detail/dusty-drawer/ckjhlfdcakdniccnkpfcclinehggbhcg" target="_blank" rel="noopener">Chrome 应用商店安装 ↗</a>
+      <a class="btn btn-ghost" href="https://github.com/xavierskip/Dusty-Drawer" target="_blank" rel="noopener">GitHub 仓库 ↗</a>
+    </div>
+  </div>
+
+  <div class="drawer-wrap px" data-speed="-0.12">
+    <div class="drawer-tabs"><i></i><i></i><i></i><i></i></div>
+    <div class="drawer-body"><div class="drawer-handle"></div></div>
+  </div>
+
+  <div class="scroll-hint">SCROLL</div>
+</header>
+
+<!-- ============ 问题 ============ -->
+<section class="problem" id="problem">
+  <div class="big-ghost px" data-speed="0.35">不敢关</div>
+  <div class="wrap">
+    <span class="mono-label reveal">01 / 问题</span>
+    <h2 class="reveal"><em>Ctrl+Shift+D</em> 能一键存下整窗标签页——<br>但存完就结束了。书签发霉，任务被抛到九霄云外。</h2>
+    <p class="reveal" style="transition-delay:.1s">查资料、写文档、做调研时，窗口里的标签页越开越多。Dusty Drawer 把「待处理的书签」直接放在你每天要看无数次的<b>新标签页</b>上，让你没法假装没看见。</p>
+  </div>
+</section>
+
+<!-- ============ 工作流 ============ -->
+<section class="flow" id="flow">
+  <div class="flow-stage">
+    <div class="flow-dust" id="flow-dust"></div>
+    <div class="wrap flow-grid">
+      <div class="flow-left">
+        <div class="flow-count" id="flow-count">STEP 1 / 3</div>
+        <div class="flow-title">保存 → 提醒<br>→ 打开 → <span>清理</span></div>
+        <div class="flow-bar"><i id="flow-bar-fill"></i></div>
+        <div class="flow-loop">一个最小闭环：<b>丢进去 · 看得见 · 拿出来</b></div>
+      </div>
+      <div class="flow-panels">
+        <div class="flow-panel" data-stage="0">
+          <span class="num">丢进去</span>
+          <h3>一键存下整窗标签页</h3>
+          <p>任意页面<b>右键菜单</b>，或点击<b>工具栏图标</b>输入自定义名称——当前窗口的所有标签页存成一个书签文件夹，默认以时间命名，保存后<kbd>自动关闭窗口</kbd>。</p>
+        </div>
+        <div class="flow-panel" data-stage="1">
+          <span class="num">看得见</span>
+          <h3>新标签页就是你的看板</h3>
+          <p>安装后 Chrome 新标签页由 Dusty Drawer 接管：<b>工作区书签</b>以卡片呈现，<b>当前窗口</b>按组列出点击即达，还有<b>模拟书签栏</b>保留原生体验。标签页增删切换，看板自动刷新。</p>
+        </div>
+        <div class="flow-panel" data-stage="2">
+          <span class="num">拿出来</span>
+          <h3>一键打开，顺手清空</h3>
+          <p>点一下工作区里的文件夹：整组链接在<b>新窗口</b>打开（可选归为<b>标签组</b>），原文件夹<b>自动删除</b>。处理完，抽屉重新变空。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 功能 ============ -->
+<section class="features" id="features">
+  <div class="wrap">
+    <span class="mono-label reveal">02 / 功能</span>
+    <h2 class="reveal">不多不少，刚好管住你的标签页。</h2>
+    <div class="feat-grid">
+      <div class="feat px" data-speed="0.05">
+        <div class="reveal">
+          <span class="fnum">01</span>
+          <h3><span class="accent">保存</span>窗口标签页</h3>
+          <p>两个入口：右键菜单快速存（时间命名），或 Popup 里自定义名称后「保存并关闭窗口」。</p>
+        </div>
+      </div>
+      <div class="feat px" data-speed="0.12">
+        <div class="reveal" style="transition-delay:.08s">
+          <span class="fnum">02</span>
+          <h3><span class="accent-t">自定义</span>新标签页</h3>
+          <p>当前窗口按组列出、工作区书签卡片、模拟书签栏，三位一体。</p>
+          <ul class="feat-list">
+            <li>点击跳转到对应标签</li>
+            <li>变化时自动刷新</li>
+          </ul>
+        </div>
+      </div>
+      <div class="feat px" data-speed="0.05">
+        <div class="reveal" style="transition-delay:.05s">
+          <span class="fnum">03</span>
+          <h3><span class="accent">一键打开</span>并清理</h3>
+          <p>整组链接在新窗口打开，原文件夹自动删除；可选「以标签组形式打开」，新窗口更整洁。</p>
+        </div>
+      </div>
+      <div class="feat px" data-speed="0.12">
+        <div class="reveal" style="transition-delay:.13s">
+          <span class="fnum">04</span>
+          <h3><span class="accent-t">可控的</span>设置项</h3>
+          <p>工作区由你指定，扩展不替你做主。</p>
+          <ul class="feat-list">
+            <li>新建 / 选择工作区文件夹</li>
+            <li>书签栏、标题换行、闭幕动画开关</li>
+            <li>清空工作区引导</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 安装 ============ -->
+<section class="install" id="install">
+  <div class="wrap">
+    <span class="mono-label reveal">03 / 开始使用</span>
+    <h2 class="reveal">两种方式，任选其一。</h2>
+    <a class="store-card reveal" style="transition-delay:.08s" href="https://chromewebstore.google.com/detail/dusty-drawer/ckjhlfdcakdniccnkpfcclinehggbhcg" target="_blank" rel="noopener">
+      <span class="store-tag">方式一 · 推荐</span>
+      <span class="store-main">
+        <b>Chrome 应用商店</b>
+        <small>一键安装，自动更新</small>
+      </span>
+      <span class="store-arrow">↗</span>
+    </a>
+    <div class="mono-label reveal" style="margin-top:7vh;transition-delay:.12s">方式二 · 本地加载（开发者模式）</div>
+    <div class="steps reveal" style="transition-delay:.16s">
+      <div class="step"><span class="snum">STEP 1</span><h4>打开扩展页</h4><p>Chrome 访问 <code>chrome://extensions/</code></p></div>
+      <div class="step"><span class="snum">STEP 2</span><h4>开发者模式</h4><p>开启右上角「开发者模式」开关</p></div>
+      <div class="step"><span class="snum">STEP 3</span><h4>加载扩展</h4><p>点击「加载已解压的扩展程序」</p></div>
+      <div class="step"><span class="snum">STEP 4</span><h4>选择目录</h4><p>选择项目中的 <code>src</code> 文件夹</p></div>
+    </div>
+    <div class="install-note reveal" style="transition-delay:.15s">
+      <b>首次配置：</b>工作区文件夹不会自动创建——这是刻意的，让你明确知道数据存在哪里。安装后按引导「新建工作区」或「选择文件夹」即可开始保存标签页。
+    </div>
+  </div>
+</section>
+
+<!-- ============ 页脚 ============ -->
+<footer>
+  <div class="dust-layer" id="dust-footer" data-speed="0.2" style="inset:-30% 0"></div>
+  <div class="wrap">
+    <div class="big reveal">清空你的 <span>抽屉</span></div>
+    <p class="reveal" style="transition-delay:.08s">处理前请确认：打开工作区书签会删除原文件夹。</p>
+    <div class="foot-links reveal" style="transition-delay:.14s">
+      <a href="https://chromewebstore.google.com/detail/dusty-drawer/ckjhlfdcakdniccnkpfcclinehggbhcg" target="_blank" rel="noopener">Chrome 应用商店 ↗</a>
+      <a href="https://github.com/xavierskip/Dusty-Drawer" target="_blank" rel="noopener">GitHub ↗</a>
+      <a href="https://github.com/xavierskip/Dusty-Drawer#readme" target="_blank" rel="noopener">README ↗</a>
+      <a href="#top">回到顶部 ↑</a>
+    </div>
+    <div class="copy">DUSTY DRAWER · 保存 → 提醒 → 打开 → 清理<br>本页文字配色对比度 4.88 – 17.08，全部通过 WCAG AA（≥ 4.5），多数达 AAA（≥ 7）</div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- 尘埃粒子（星尘场） ---------- */
+  function spawnDust(container, count, sizeMin, sizeMax){
+    if(!container) return;
+    for(var i=0;i<count;i++){
+      var d=document.createElement('i');
+      d.className='dust';
+      var r=Math.random();
+      if(r>0.88) d.classList.add('amber');
+      else if(r>0.78) d.classList.add('teal');
+      var size=sizeMin+Math.random()*(sizeMax-sizeMin);
+      var omin=(0.05+Math.random()*0.21).toFixed(2);
+      var omax=(0.13+Math.random()*0.81).toFixed(2);
+      var dur=(2.4+Math.random()*5.2).toFixed(2);
+      d.style.cssText='left:'+(Math.random()*100).toFixed(2)+'%;top:'+(Math.random()*100).toFixed(2)+'%;'
+        +'width:'+size.toFixed(2)+'px;height:'+size.toFixed(2)+'px;'
+        +'--o-min:'+omin+';--o-max:'+omax+';--dur:'+dur+'s;--delay:'+(-Math.random()*7.6).toFixed(2)+'s;';
+      container.appendChild(d);
+    }
+  }
+  spawnDust(document.getElementById('dust-far'),36,1,1.5);
+  spawnDust(document.getElementById('dust-mid'),26,1.5,2.25);
+  spawnDust(document.getElementById('dust-near'),16,2.25,3.5);
+  spawnDust(document.getElementById('flow-dust'),30,1,2.25);
+  spawnDust(document.getElementById('dust-footer'),20,1,2.25);
+
+  /* ---------- 滚动显现 ---------- */
+  var io=new IntersectionObserver(function(es){
+    es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+  },{threshold:0.12});
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+
+  /* ---------- 视差 + 工作流进度 ---------- */
+  var pxEls=[].slice.call(document.querySelectorAll('[data-speed]'));
+  var navEl=document.querySelector('nav');
+  var installSec=document.getElementById('install');
+  var flow=document.getElementById('flow');
+  var panels=[].slice.call(document.querySelectorAll('.flow-panel'));
+  var barFill=document.getElementById('flow-bar-fill');
+  var countEl=document.getElementById('flow-count');
+  var lastStage=-1;
+
+  function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+
+  function frame(){
+    var vh=window.innerHeight;
+
+    if(!reduced){
+      for(var i=0;i<pxEls.length;i++){
+        var el=pxEls[i], r=el.getBoundingClientRect();
+        if(r.bottom<-260||r.top>vh+260) continue;
+        var sp=parseFloat(el.dataset.speed);
+        var off=(r.top+r.height/2-vh/2)*sp;
+        el.style.transform='translate3d(0,'+off.toFixed(1)+'px,0)';
+      }
+    }
+
+    /* 导航条与浅色区实际重叠时才变色（导航高约 70px） */
+    var ir=installSec.getBoundingClientRect();
+    navEl.classList.toggle('on-light', ir.top<=70 && ir.bottom>70);
+
+    /* 工作流：滚动进度 → 分层揭示（前 12% 缓冲，之后归一化，0.5 取整吸附） */
+    var fr=flow.getBoundingClientRect();
+    var total=flow.offsetHeight-vh;
+    var p=clamp(-fr.top/total,0,1);
+    var adj=clamp((p-0.12)/0.88,0,1);
+    var sp=adj*panels.length;
+    var stage=clamp(Math.floor(sp+0.25),0,panels.length-1);
+    if(p<=0.001) stage=0;
+
+    panels.forEach(function(panel,idx){
+      var enter=clamp((sp-idx)/0.55,0,1);
+      var exit= idx===panels.length-1 ? 0 : clamp((sp-idx-0.75)/0.5,0,1);
+      var op=enter*(1-exit);
+      panel.style.setProperty('--reveal',op.toFixed(3));
+      panel.style.transform='translate3d(0,'+(((1-enter)*60)-(exit*70)).toFixed(1)+'px,0)';
+    });
+    barFill.style.transform='scaleX('+p.toFixed(3)+')';
+
+    if(stage!==lastStage){
+      lastStage=stage;
+      countEl.textContent='STEP '+(stage+1)+' / '+panels.length;
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
