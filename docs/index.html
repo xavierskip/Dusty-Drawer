@@ -122,7 +122,9 @@ section{position:relative}
   margin-top:28px;font-size:clamp(16px,2vw,21px);color:var(--ink);
   max-width:640px;font-weight:300;
 }
-.hero .tagline b{color:var(--teal);font-weight:600}
+.hero .tagline b{color:var(--teal);font-weight:600;white-space:nowrap}
+.hero .tagline .tag-br{display:none}
+@media(min-width:640px){.hero .tagline .tag-br{display:inline}}
 .hero-badges{
   margin-top:22px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;
   font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--muted);
@@ -199,12 +201,23 @@ section{position:relative}
   white-space:nowrap;pointer-events:none;z-index:1;line-height:1;
   user-select:none;
 }
+.problem-lead{
+  font-family:var(--sans);font-size:clamp(30px,4.6vw,54px);font-weight:600;
+  letter-spacing:-.02em;color:var(--cream);line-height:1.3;margin-bottom:14px;
+}
+.problem-lead kbd{
+  font-family:var(--mono);font-size:.72em;color:var(--amber);
+  border:3px solid rgba(232,163,61,.4);
+  padding:.08em .5em;margin-right:.6em;vertical-align:.08em;
+}
 .problem h2{
   font-size:clamp(30px,4.6vw,54px);font-weight:600;letter-spacing:-.02em;
-  color:var(--cream);line-height:1.25;max-width:760px;
+  color:var(--cream);line-height:1.3;max-width:940px;
 }
-.problem h2 em{font-style:normal;color:var(--amber)}
-.problem p{margin-top:26px;max-width:560px;color:var(--muted);font-size:17px}
+.problem h2 .pl,.problem-lead .pl{white-space:nowrap}
+.h2-br{display:none}
+@media(min-width:820px){.h2-br{display:inline}}
+.problem p:not(.problem-lead){margin-top:26px;max-width:560px;color:var(--muted);font-size:17px}
 .problem p b{color:var(--ink);font-weight:600}
 </style>
 <style>
@@ -226,10 +239,13 @@ section{position:relative}
   margin-bottom:18px;
 }
 .flow-title{
-  font-size:clamp(38px,5.4vw,72px);font-weight:800;letter-spacing:-.02em;
-  color:var(--cream);line-height:1.1;
+  font-size:clamp(34px,4.6vw,64px);font-weight:800;letter-spacing:-.02em;
+  color:var(--cream);line-height:1.35;
+  display:flex;flex-wrap:wrap;align-items:baseline;gap:0 .28em;
 }
-.flow-title span{color:var(--amber)}
+.flow-title i{font-style:normal;white-space:nowrap}
+.flow-title em{font-style:normal;color:var(--muted);font-weight:600}
+.flow-title span{color:var(--amber);white-space:nowrap}
 .flow-bar{
   margin-top:34px;height:2px;background:var(--border);border-radius:2px;
   max-width:320px;position:relative;overflow:hidden;
@@ -374,7 +390,7 @@ footer .copy{margin-top:60px;font-family:var(--mono);font-size:11px;color:#7d838
   <div class="hero-inner px" data-speed="0.18">
     <span class="mono-label reveal">Chrome 扩展 · 临时书签看板</span>
     <h1><span class="reveal" style="display:block;transition-delay:.08s"><span class="dusty">Dusty</span> <span class="drawer">Drawer</span></span></h1>
-    <p class="tagline reveal" style="transition-delay:.16s">把攒了一窗口的标签页丢进「抽屉」，在新标签页里盯着它们，<b>处理完就清空</b>。</p>
+    <p class="tagline reveal" style="transition-delay:.16s">把攒了一窗口的标签页丢进「抽屉」，<br class="tag-br">在新标签页里盯着它们，<b>处理完就清空。</b></p>
     <div class="hero-badges reveal" style="transition-delay:.24s">
       <span>Manifest V3</span><span>原生书签驱动</span><span>开源</span>
     </div>
@@ -397,7 +413,8 @@ footer .copy{margin-top:60px;font-family:var(--mono);font-size:11px;color:#7d838
   <div class="big-ghost px" data-speed="0.35">不敢关</div>
   <div class="wrap">
     <span class="mono-label reveal">01 / 问题</span>
-    <h2 class="reveal"><em>Ctrl+Shift+D</em> 能一键存下整窗标签页——<br>但存完就结束了。书签发霉，任务被抛到九霄云外。</h2>
+    <p class="problem-lead reveal"><kbd>Ctrl+Shift+D</kbd><span class="pl">能一键存下整窗标签页</span></p>
+    <h2 class="reveal" style="transition-delay:.06s"><span class="pl">但存完就结束了。</span><br class="h2-br"><span class="pl">书签发霉，</span><span class="pl">任务被抛到九霄云外。</span></h2>
     <p class="reveal" style="transition-delay:.1s">查资料、写文档、做调研时，窗口里的标签页越开越多。Dusty Drawer 把「待处理的书签」直接放在你每天要看无数次的<b>新标签页</b>上，让你没法假装没看见。</p>
   </div>
 </section>
@@ -409,7 +426,7 @@ footer .copy{margin-top:60px;font-family:var(--mono);font-size:11px;color:#7d838
     <div class="wrap flow-grid">
       <div class="flow-left">
         <div class="flow-count" id="flow-count">STEP 1 / 3</div>
-        <div class="flow-title">保存 → 提醒<br>→ 打开 → <span>清理</span></div>
+        <div class="flow-title"><i>保存</i><em>→</em><i>提醒</i><em>→</em><i>打开</i><em>→</em><span>清理</span></div>
         <div class="flow-bar"><i id="flow-bar-fill"></i></div>
         <div class="flow-loop">一个最小闭环：<b>丢进去 · 看得见 · 拿出来</b></div>
       </div>
@@ -583,9 +600,10 @@ footer .copy{margin-top:60px;font-family:var(--mono);font-size:11px;color:#7d838
       }
     }
 
-    /* 导航条与浅色区实际重叠时才变色（导航高约 70px） */
+    /* 导航条与浅色区实际重叠时才变色（按导航实际高度判定） */
+    var navH=navEl.offsetHeight;
     var ir=installSec.getBoundingClientRect();
-    navEl.classList.toggle('on-light', ir.top<=70 && ir.bottom>70);
+    navEl.classList.toggle('on-light', ir.top<=navH && ir.bottom>navH);
 
     /* 工作流：滚动进度 → 分层揭示（前 12% 缓冲，之后归一化，0.5 取整吸附） */
     var fr=flow.getBoundingClientRect();
